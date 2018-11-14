@@ -16,7 +16,6 @@
 </head>
 <body onload="draw();">
 
- 
 
 </body>
 <script src="./three_js_dev/build/three.js"></script>
@@ -71,11 +70,11 @@
 
     var light;
     function initLight() {
-        light = new THREE.AmbientLight(0x111111);
+        light = new THREE.AmbientLight(0x00000);
         light.position.set(0,0,30);
         //light.position.set(0,0,200);
         //告诉平行光需要开启阴影投射
-        light.castShadow = true;
+        light.castShadow = false;
         scene.add(light);
     }
 
@@ -86,7 +85,9 @@
         scene.add(helper);
         //加载OBJ格式的模型
         var loader = new THREE.OBJLoader();
-        loader.load("./data/doll.obj",function (loadedMesh) {
+
+        var scale = .8; //模型缩小0.5
+        loader.load("./data/top.obj",function (loadedMesh) {
             var material = new THREE.MeshLambertMaterial({color: 0x5C3A21});
             // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的发现了
             loadedMesh.children.forEach(function (child) {
@@ -95,9 +96,23 @@
                 child.geometry.computeVertexNormals();
             });
             //模型缩小1/2
-            loadedMesh.scale.set(.5, .5, .5);
+            loadedMesh.scale.set(scale, scale, scale);
+            loadedMesh.position.set(0,0,0);
             scene.add(loadedMesh);
-            console.debug(scene);
+        });
+
+        loader.load("./data/bottom.obj",function (loadedMesh) {
+            var material = new THREE.MeshLambertMaterial({color: 0x5C3A21});
+            // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的发现了
+            loadedMesh.children.forEach(function (child) {
+                child.material = material;
+                child.geometry.computeFaceNormals();
+                child.geometry.computeVertexNormals();
+            });
+            //模型缩小1/2
+            loadedMesh.scale.set(scale, scale, scale);
+            loadedMesh.position.set(0,-56*scale,0); 
+            scene.add(loadedMesh);
         });
     }
 
@@ -106,7 +121,7 @@
     var stats;
     function initStats() {
         stats = new Stats();
-        document.body.appendChild(stats.dom);
+        document.body.appendChild(stats.dom);400
     }
 
 
