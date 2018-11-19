@@ -37,9 +37,14 @@
 
         //告诉渲染器需要阴影效果
 
-        renderer.setClearColor(0xffffff);
+        //renderer.setClearColor(0xffffff);
 
         document.body.appendChild(renderer.domElement);
+        
+        renderer.shadowMapEnabled = true;
+        renderer.shadowMapSoft = true;
+        renderer.shadowMap.renderReverseSided = false;
+        renderer.shadowMap.renderSingleSided = false;
 
     }
 
@@ -47,9 +52,9 @@
     var camera;
     function initCamera() {
         camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-        //camera.position.set(0, 40, 50);
-        camera.position.set(0, 400, 500);
-        camera.lookAt(new THREE.Vector3(0,0,0));
+        camera.position.set(0, 100, 100);
+        //camera.position.set(0, 400, 500);
+        camera.lookAt(new THREE.Vector3(0, 5,0));
     }
 
     var scene;
@@ -72,18 +77,34 @@
     var light;
     function initLight() {
         light = new THREE.AmbientLight("#ffffff");
-        light.position.set(0,0,200);
+        light.position.set(0,0,0);
         //light.position.set(0,0,200);
         //告诉平行光需要开启阴影投射
-        light.castShadow = true;
+        //light.castShadow = true;
         scene.add(light);
 
-        pointLight = new THREE.PointLight("#ffffff");
-        pointLight.position.set(0, -20, 0);
-        pointLight.intensity = 0.5;
-        pointLight.distance = 300;
+        pointLight = new THREE.SpotLight(0xffffff, 1, 100);
+        pointLight.position.set(30, 80, 30);
+       // pointLight.intensity = 1;
+        //pointLight.distance = 500;
         pointLight.castShadow = true;
+        pointLight.shadow = new THREE.LightShadow(new THREE.PerspectiveCamera(45, 1, 1, 1000));
+        pointLight.shadow.bias = -0.01;
+        pointLight.target.position.set(-1,0,1);
+        pointLight.shadowDarkness = 0.9;
+        pointLight.shadowCameraVisible = true;
+        pointLight.shadow.camera.near = 50;
+        pointLight.shadow.camera.far= 150;
+        pointLight.shadow.camera.left = -50;
+        pointLight.shadow.camera.right = 50;
+        pointLight.shadow.camera.top = 50;
+        pointLight.shadow.camera.bottom = -50;
+        pointLight.shadow.mapSize.width = 512;
+        pointLight.shadow.mapSize.height = 512;
+        //pointLight.shadow.camera.rotateX(- Math.PI / 2);
         scene.add(pointLight);
+        var helper = new THREE.CameraHelper(pointLight.shadow.camera);
+        scene.add(helper);
     }
 
 
@@ -94,10 +115,10 @@
 
         //load mtl
         var mtlLoader = new THREE.MTLLoader();
-        var scale = .6; //模型缩小0.5
+        var scale = .3; //模型缩小0.5
 
-        /*
-        var mat = new THREE.MeshPhongMaterial();
+        
+        var mat = new THREE.MeshLambertMaterial();
         mat.map = new THREE.TextureLoader().load("./data/texture_1.png"), {}, function(){
             renderer.render(scene);
         };
@@ -112,13 +133,11 @@
         var sphereGeometry = new THREE.SphereGeometry(10, 40, 80);
         var sphere = new THREE.Mesh(sphereGeometry, mat);
         console.debug(sphere);
-        sphere.position.set(0, -10, 0);
+        sphere.position.set(-30, -0, -30);
+        sphere.castShadow = true;
+        sphere.receiveShadow = false;
         scene.add(sphere);
-        */
-
-        // Adding plane.
         
-
 
         var texture = new THREE.ImageUtils.loadTexture('./three_js_dev/examples/textures/sprite0.png');
         var material = new THREE.MeshPhongMaterial({ 
@@ -136,15 +155,22 @@
             loader.setMaterials(materials);
             loader.load("./data/top.obj",function (loadedMesh) {
                 // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
+                var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
                 loadedMesh.children.forEach(function (child) {
-                    child.material = material;
-                    child.geometry.computeFaceNormals();
-                    child.geometry.computeVertexNormals();
+                    if (child instanceof THREE.Mesh){
+                        //child.material = material;   
+                        child.castShadow = true;
+                        //child.receiveShadow = false;
+                    }
+                    //child.geometry.computeFaceNormals();
+                    //child.geometry.computeVertexNormals();
                 });
                 
                 //模型缩小1/2
                 loadedMesh.scale.set(scale, scale, scale);
                 loadedMesh.position.set(0,0,0);
+                loadedMesh.castShadow = true;
+                loadedMesh.receiveShadow = false;
 
                 scene.add(loadedMesh);
             });
@@ -156,20 +182,47 @@
             var loader = new THREE.OBJLoader();
             loader.setMaterials(materials);
             loader.load("./data/bottom.obj",function (loadedMesh) {
-                var material = new THREE.MeshLambertMaterial({color: 0x5C3A21});
+                var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
                 // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的发现了
                 loadedMesh.children.forEach(function (child) {
-                    child.material = material;
-                    child.geometry.computeFaceNormals();
-                    child.geometry.computeVertexNormals();
+                    //child.material = material;
+                    if (child instanceof THREE.Mesh){
+                        //child.material = material;
+                        child.castShadow = true;
+                        //child.receiveShadow = false;
+                    }
+                    //child.geometry.computeFaceNormals();
+                   // child.geometry.computeVertexNormals();
                 });
                                
                 //模型缩小1/2
                 loadedMesh.scale.set(scale, scale, scale);
                 loadedMesh.position.set(0,-56*scale,0); 
+                loadedMesh.castShadow = true;
+                loadedMesh.receiveShadow = false;
                 scene.add(loadedMesh);
             });
         });
+
+
+        // Adding plane.
+        var geo = new THREE.PlaneBufferGeometry(200, 200);
+        var planeTexture = new THREE.ImageUtils.loadTexture('./data/textures/floor1.jpg');
+        var planeMat = new THREE.MeshPhongMaterial({ 
+            map: planeTexture,
+            transparent: false,
+            opacity: 0.5,
+            side: THREE.DoubleSide,
+            depthWrite: true,
+            });
+        //var mat1 = new THREE.MeshBasicMaterial({color: 0xffff00});
+        var plane = new THREE.Mesh(geo, planeMat);
+        plane.rotateX( - Math.PI / 2);
+        plane.position.set(-20, -56*scale, -30);
+        plane.receiveShadow = true;
+        //plane.castShadow = false;
+        scene.add(plane);
+
     }
 
 
@@ -203,6 +256,7 @@
 
 
     function render() {
+        //requestAnimationFrame(animate);
         renderer.render( scene, camera );
     }
 
