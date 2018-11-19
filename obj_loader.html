@@ -94,8 +94,9 @@
 
         //load mtl
         var mtlLoader = new THREE.MTLLoader();
-        var scale = .8; //模型缩小0.5
+        var scale = .6; //模型缩小0.5
 
+        /*
         var mat = new THREE.MeshPhongMaterial();
         mat.map = new THREE.TextureLoader().load("./data/texture_1.png"), {}, function(){
             renderer.render(scene);
@@ -113,73 +114,42 @@
         console.debug(sphere);
         sphere.position.set(0, -10, 0);
         scene.add(sphere);
+        */
+
+        // Adding plane.
+        var geo = new THREE.Plane
+
+
+        var texture = new THREE.ImageUtils.loadTexture('./three_js_dev/examples/textures/sprite0.png');
+        var material = new THREE.MeshPhongMaterial({ 
+            map: texture,
+            transparent: false,
+            opacity: 0.5,
+            side: THREE.DoubleSide,
+            depthWrite: true,
+            });
         
         mtlLoader.load('./data/top.mtl', function(materials){
             materials.preload();
             //加载OBJ格式的模型
             var loader = new THREE.OBJLoader();
-            var texture = new THREE.ImageUtils.loadTexture('./three_js_dev/examples/textures/sprite0.png');
-            var material = new THREE.MeshPhongMaterial({ 
-                map: texture,
-                transparent: false,
-                opacity: 0.5,
-                side: THREE.DoubleSide,
-                depthWrite: true,
-                });
             loader.setMaterials(materials);
             loader.load("./data/top.obj",function (loadedMesh) {
-                // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的发现了
-                /*
+                // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
                 loadedMesh.children.forEach(function (child) {
-                    child.material = mat;
+                    child.material = material;
                     child.geometry.computeFaceNormals();
                     child.geometry.computeVertexNormals();
-                });
-                */
-                
-                loadedMesh.traverse(function(node){
-                    if (node.isMesh) node.material = mat;
                 });
                 
                 //模型缩小1/2
                 loadedMesh.scale.set(scale, scale, scale);
                 loadedMesh.position.set(0,0,0);
 
-                //var sphere = new THREE.Mesh(loadedMesh, mat);
-                //var top = new THREE.Mesh(loadedMesh, material);
                 scene.add(loadedMesh);
             });
         });
 
-
-        //加载OBJ格式的模型
-        var loader = new THREE.OBJLoader();
-        loader.load("./data/bottom.obj",function (loadedMesh) {        
-            //var material = new THREE.MeshLambertMaterial({color: 0x5C3A21});
-            // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
-            loadedMesh.children.forEach(function (child) {
-                if (child instanceof THREE.Mesh){            
-                    var newMesh = new THREE.Mesh(child.geometry, mat);
-                    newMesh.scale.set(scale, scale, scale);
-                    newMesh.position.set(0, -30-56*scale, 0);
-                    console.debug(newMesh);
-                    scene.add(newMesh);
-                    /*        
-                    child.material = mat;
-                    child.scale.set(scale, scale, scale);
-                    child.position.set(0, -56*scale, 0);
-                    scene.add(child);*/
-                }
-                //child.geometry.computeFaceNormals();
-                //child.geometry.computeVertexNormals();
-            });
-            
-            //模型缩小1/2
-            loadedMesh.scale.set(scale, scale, scale);
-            loadedMesh.position.set(0,-56*scale,0); 
-            //scene.add(loadedMesh);
-        });
-        /*
         mtlLoader.load('./data/bottom.mtl', function(materials){
             materials.preload();
             //加载OBJ格式的模型
@@ -197,10 +167,9 @@
                 //模型缩小1/2
                 loadedMesh.scale.set(scale, scale, scale);
                 loadedMesh.position.set(0,-56*scale,0); 
-                //scene.add(loadedMesh);
+                scene.add(loadedMesh);
             });
         });
-        */
     }
 
 
