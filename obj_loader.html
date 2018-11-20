@@ -139,8 +139,8 @@
     var scaleStep = .03;
     var mdlInterval = 30;
 
-    function loadSingleModel(mdlPart, index, scale){
-        //var mdl;
+    function loadSingleModel(mdlPart, index, scale, callback){
+        var mdl;
         var mtlLoader = new THREE.MTLLoader();
             mtlLoader.load(`./data/${mdlPart}_${index}.mtl`, function(materials){
                 console.debug(`./data/${mdlPart}_${index}.mtl`);
@@ -153,7 +153,7 @@
                     loadedMesh.children.forEach(function (child) {
                         if (child instanceof THREE.Mesh){
                             //child.material = material;   
-                            var mdl = child;
+                            mdl = child;
                             mdl.castShadow = true;
                             mdl.geometry.scale(scale, scale, scale);
                             var z;
@@ -163,31 +163,35 @@
                                 z = 0;
                             }
                             mdl.position.set(mdlInterval*index, z, 0);
-                            scene.add(mdl);
-                            return mdl;
+                            //scene.add(mdl);
+                            console.debug("mdl:", mdl);
+                            callback(mdlPart, mdl);
                         }
                     });
                     
                 });
             });
-    }matTops
+    }
+
+    
+    function pushModel(mdlPart, mdl){
+        console.debug("pushmdl:", mdl);
+        if (mdlPart == "top"){
+            matTops.push(mdl);
+            scene.add(matTops[matTops.length-1]);
+        } else{
+            matBottoms.push(mdl);
+            scene.add(matBottoms[matBottoms.length-1]);
+        }
+    }
 
     function loadMatroyModels() {
         //load mtl
         var i;
         for (i = 0; i < MatroyNum; i++){
             var scale = initScale - i * scaleStep;
-            var top = loadSingleModel("top", i, scale);
-            console.debug("top:", top);
-            matTops.push(top);
-            var bottom = loadSingleModel("bottom", i, scale);
-            matBottoms.push(bottom);
-            console.debug("top:", top);
-            //matTops.push(top);
-            console.debug("before add", matTops[i]);
-            //scene.add(matTops[i]);
-            //matBottoms.push(loadSingleModel("bottom", i, scale));
-            //scene.add(matBottoms[i]);
+            loadSingleModel("top", i, scale, pushModel);
+            loadSingleModel("bottom", i, scale, pushModel);
         }
     }
 
@@ -197,8 +201,6 @@
         scene.add(helper);
   
         loadMatroyModels();
-        console.debug("matTops:", matTops);
-        console.debug("matBottoms:", matBottoms);
         var i;
         for (i = 0; i < MatroyNum; i++){
             //scene.add(matTops[i]);
@@ -273,6 +275,8 @@
         //更新控制器
         render();
         //更新性能插件
+        console.debug("matTops:", matTops);
+        console.debug("matBottoms:", matBottoms);
         stats.update();
         controls.update();
         requestAnimationFrame(animate);
