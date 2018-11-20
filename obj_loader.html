@@ -131,72 +131,79 @@
         scene.add(helper);
     }
 
-    var matTops = [], matTopShadow;
-    var matBottoms = [], matBottomShadow;
+    var matTops = [];
+    var matBottoms = [];
     var plane;
+    var MatroyNum = 3;
+    var initScale = .25; //模型缩小0.5
+    var scaleStep = .03;
+    var mdlInterval = 30;
+
+    function loadSingleModel(mdlPart, index, scale){
+        //var mdl;
+        var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.load(`./data/${mdlPart}_${index}.mtl`, function(materials){
+                console.debug(`./data/${mdlPart}_${index}.mtl`);
+                materials.preload();
+                //加载OBJ格式的模型
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials(materials);
+                loader.load(`./data/${mdlPart}.obj`,function (loadedMesh) {
+                    // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
+                    loadedMesh.children.forEach(function (child) {
+                        if (child instanceof THREE.Mesh){
+                            //child.material = material;   
+                            var mdl = child;
+                            mdl.castShadow = true;
+                            mdl.geometry.scale(scale, scale, scale);
+                            var z;
+                            if (mdlPart == "top"){
+                                z = 56 * scale;
+                            } else{
+                                z = 0;
+                            }
+                            mdl.position.set(mdlInterval*index, z, 0);
+                            scene.add(mdl);
+                            return mdl;
+                        }
+                    });
+                    
+                });
+            });
+    }matTops
+
+    function loadMatroyModels() {
+        //load mtl
+        var i;
+        for (i = 0; i < MatroyNum; i++){
+            var scale = initScale - i * scaleStep;
+            var top = loadSingleModel("top", i, scale);
+            console.debug("top:", top);
+            matTops.push(top);
+            var bottom = loadSingleModel("bottom", i, scale);
+            matBottoms.push(bottom);
+            console.debug("top:", top);
+            //matTops.push(top);
+            console.debug("before add", matTops[i]);
+            //scene.add(matTops[i]);
+            //matBottoms.push(loadSingleModel("bottom", i, scale));
+            //scene.add(matBottoms[i]);
+        }
+    }
+
     function initModel() {
         //辅助工具
         var helper = new THREE.AxesHelper(50);
         scene.add(helper);
-
-        //load mtl
-        var mtlLoader = new THREE.MTLLoader();
-        var scale = .25; //模型缩小0.5
-/*
-        var texture = new THREE.TextureLoader().load('./three_js_dev/examples/textures/sprite0.png');
-        var material = new THREE.MeshLambertMaterial({ 
-            map: texture,
-            transparent: false,
-            //opacity: 0.5,
-            side: THREE.FrontSide,
-            shadowSide: THREE.FrontSide,
-            depthWrite: false,
-            });
-*/      
-        mtlLoader.load('./data/top.mtl', function(materials){
-            materials.preload();
-            //加载OBJ格式的模型
-            var loader = new THREE.OBJLoader();
-            loader.setMaterials(materials);
-            loader.load("./data/top.obj",function (loadedMesh) {
-                // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
-                loadedMesh.children.forEach(function (child) {
-                    if (child instanceof THREE.Mesh){
-                        //child.material = material;   
-                        matTop = child;
-                        matTop.castShadow = true;
-                        matTop.geometry.scale(scale, scale, scale);
-                        matTop.position.set(0, 56*scale, 0);
-                        matTops.push(matTop);
-                        scene.add(matTop);
-                    }
-                });
-                
-            });
-        });
-
-        mtlLoader.load('./data/bottom.mtl', function(materials){
-            materials.preload();
-            //加载OBJ格式的模型
-            var loader = new THREE.OBJLoader();
-            loader.setMaterials(materials);
-            loader.load("./data/bottom.obj",function (loadedMesh) {
-                var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
-                // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的发现了
-                loadedMesh.children.forEach(function (child) {
-                    if (child instanceof THREE.Mesh){
-                        //child.material = material;
-                        matBottom = child;
-                        matBottom.geometry.scale(scale, scale, scale);
-                        matBottom.position.set(0, 0, 0);
-                        matBottoms.push(matBottom);
-                        scene.add(matBottom);
-                    }
-                });
-            });
-        });
-
-
+  
+        loadMatroyModels();
+        console.debug("matTops:", matTops);
+        console.debug("matBottoms:", matBottoms);
+        var i;
+        for (i = 0; i < MatroyNum; i++){
+            //scene.add(matTops[i]);
+            //scene.add(matBottoms[i]);
+        }
         // Adding plane.
         var geo = new THREE.BoxBufferGeometry(200, 0, 200);
         var planeMat;
@@ -257,7 +264,7 @@
     function onWindowResize() {
         camera.assunLightow.innerWidth / window.innerHeight;
         camera.upsunLightionMatrix();
-        render();sunLight
+        render();
         renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
