@@ -111,7 +111,7 @@
         spotLightShadowMapViewer.position.set( 276, 10 );
         
         var sunLight = new THREE.DirectionalLight('rgb(255,255,255)', .9,100);
-        sunLight.position.set(20,40, 20);
+        sunLight.position.set(60, 100, 60);
         sunLight.castShadow = true;
         sunLight.lookAt(scene.position);
         sunLight.shadow.camera.visible = true;
@@ -136,8 +136,8 @@
     var plane;
     var MatroyNum = 3;
     var initScale = .25; //模型缩小0.5
-    var scaleStep = .03;
-    var mdlInterval = 30;
+    var scaleStep = .04;
+    var mdlInterval = 0;
 
     function loadSingleModel(mdlPart, index, scale, callback){
         var mdl;
@@ -271,15 +271,24 @@
     }
 
 
+	var clock = new THREE.Clock();
     function animate() {
         //更新控制器
+        requestAnimationFrame(animate);
+
+		frameTime = clock.getDelta();
+        var CELL = 40;
+        //matTops[0].rotation.x += 1.0 * frameTime;
+        //matTops[0].rotation.y += 1.0 * frameTime;
+        if (matTops[0].position.y < CELL){
+            matTops[0].position.y += 7 * frameTime;
+            matTops[0].position.z += 1 * frameTime;
+        }
+
         render();
         //更新性能插件
-        console.debug("matTops:", matTops);
-        console.debug("matBottoms:", matBottoms);
         stats.update();
         controls.update();
-        requestAnimationFrame(animate);
     }
 
 
@@ -299,3 +308,4 @@
 </script>
 
 </html>
+
