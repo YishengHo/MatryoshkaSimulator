@@ -95,11 +95,7 @@
         spotLight.angle = Math.PI / 2;
         //spotLight.shadowDarkness = 0.9;
         spotLight.shadow.camera.visible = true;
-        spotLight.shadow.camera.near
-        lightPosition4D.x = sunLight.position.x;
-        lightPosition4D.y = sunLight.position.y;
-        lightPosition4D.z = sunLight.position.z;
-        lightPosition4D.w = 0.001; = 2;
+        spotLight.shadow.camera.near = 2;
         spotLight.shadow.camera.far= 50;
         spotLight.shadow.camera.left = -45;
         spotLight.shadow.camera.right = 45;
@@ -157,7 +153,6 @@
             depthWrite: false,
             });
 */      
-        
         mtlLoader.load('./data/top.mtl', function(materials){
             materials.preload();
             //加载OBJ格式的模型
