@@ -81,17 +81,17 @@
 
     function initLight() {
         ambientLight = new THREE.AmbientLight("#ffffff", .3);
-        ambientLight.position.set(0,0,0);
+        ambientLight.position.set(0,0.1,0);
         //light.position.set(0,0,200);
         //告诉平行光需要开启阴影投射
         //light.castShadow = true;
         scene.add(ambientLight);
 
-        spotLight = new THREE.SpotLight(0xffffff, 1, 300);
-        spotLight.position.set(60, 90, 60);
+        spotLight = new THREE.PointLight(0xff0000);
+        spotLight.position.set(5, 0, 0);
        // spotLight.intensity = 1;
         //spotLight.distance = 500;
-        spotLight.castShadow = true;
+        //spotLight.castShadow = true;
         spotLight.angle = Math.PI / 2;
         //spotLight.shadowDarkness = 0.9;
         spotLight.shadow.camera.visible = true;
@@ -136,11 +136,25 @@
     var plane;
     var MatroyNum = 3;
     var initScale = .25; //模型缩小0.5
-    var scaleStep = .04;
+    var scaleStep = .05;
     var mdlInterval = 0;
 
     function loadSingleModel(mdlPart, index, scale, callback){
         var mdl;
+        var col;
+        if(index == 0){
+            col = 0x0000ff;
+        } else if(index == 1){
+            col = 0x00ff00;
+        } else{
+            col = 0x0000ff;
+        }
+        var material = new THREE.MeshPhongMaterial( {
+            color: col,
+            shininess: 150,
+            transparent: false,
+            specular: 0x222222
+        } );
         var mtlLoader = new THREE.MTLLoader();
             mtlLoader.load(`./data/${mdlPart}_${index}.mtl`, function(materials){
                 console.debug(`./data/${mdlPart}_${index}.mtl`);
@@ -152,7 +166,7 @@
                     // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
                     loadedMesh.children.forEach(function (child) {
                         if (child instanceof THREE.Mesh){
-                            //child.material = material;   
+                            child.material = material;   
                             mdl = child;
                             mdl.castShadow = true;
                             mdl.geometry.scale(scale, scale, scale);
@@ -281,8 +295,7 @@
         //matTops[0].rotation.x += 1.0 * frameTime;
         //matTops[0].rotation.y += 1.0 * frameTime;
         if (matTops[0].position.y < CELL){
-            matTops[0].position.y += 7 * frameTime;
-            matTops[0].position.z += 1 * frameTime;
+            matTops[0].position.y += 10 * frameTime;
         }
 
         render();
