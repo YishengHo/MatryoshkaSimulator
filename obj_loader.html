@@ -24,6 +24,10 @@
 <script src="./three_js_dev/examples/js/controls/OrbitControls.js"></script>
 <script src="./three_js_dev/examples/js/libs/stats.min.js"></script>
 <script src="./three_js_dev/examples/js/libs/dat.gui.min.js"></script>
+<script src="./three_js_dev/ShadowMesh.js"></script>
+<script src="./three_js_dev/examples/js/shaders/UnpackDepthRGBAShader.js"></script>
+<script src="./three_js_dev/examples/js/utils/ShadowMapViewer.js"></script>
+<script src="./three_js_dev/examples/js/WebGL.js"></script>
 
 
 
@@ -41,10 +45,8 @@
 
         document.body.appendChild(renderer.domElement);
         
-        renderer.shadowMapEnabled = true;
+        renderer.shadowMap.enabled = true;
         renderer.shadowMapSoft = true;
-        renderer.shadowMap.renderReverseSided = false;
-        renderer.shadowMap.renderSingleSided = false;
 
     }
 
@@ -54,7 +56,7 @@
         camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
         camera.position.set(0, 100, 100);
         //camera.position.set(0, 400, 500);
-        camera.lookAt(new THREE.Vector3(0, 5,0));
+        //camera.lookAt(new THREE.Vector3(0, 5,0));
     }
 
     var scene;
@@ -74,40 +76,68 @@
     }
 
 
-    var light;
+    var ambientLight;
+    var spotLight;
+
     function initLight() {
-        light = new THREE.AmbientLight("#ffffff");
-        light.position.set(0,0,0);
+        ambientLight = new THREE.AmbientLight("#ffffff", .3);
+        ambientLight.position.set(0,0,0);
         //light.position.set(0,0,200);
         //告诉平行光需要开启阴影投射
         //light.castShadow = true;
-        scene.add(light);
+        scene.add(ambientLight);
 
-        pointLight = new THREE.SpotLight(0xffffff, 1, 100);
-        pointLight.position.set(30, 80, 30);
-       // pointLight.intensity = 1;
-        //pointLight.distance = 500;
-        pointLight.castShadow = true;
-        pointLight.shadow = new THREE.LightShadow(new THREE.PerspectiveCamera(45, 1, 1, 1000));
-        pointLight.shadow.bias = -0.01;
-        pointLight.target.position.set(-1,0,1);
-        pointLight.shadowDarkness = 0.9;
-        pointLight.shadowCameraVisible = true;
-        pointLight.shadow.camera.near = 50;
-        pointLight.shadow.camera.far= 150;
-        pointLight.shadow.camera.left = -50;
-        pointLight.shadow.camera.right = 50;
-        pointLight.shadow.camera.top = 50;
-        pointLight.shadow.camera.bottom = -50;
-        pointLight.shadow.mapSize.width = 512;
-        pointLight.shadow.mapSize.height = 512;
-        //pointLight.shadow.camera.rotateX(- Math.PI / 2);
-        scene.add(pointLight);
-        var helper = new THREE.CameraHelper(pointLight.shadow.camera);
+        spotLight = new THREE.SpotLight(0xffffff, 1, 300);
+        spotLight.position.set(60, 90, 60);
+       // spotLight.intensity = 1;
+        //spotLight.distance = 500;
+        spotLight.castShadow = true;
+        spotLight.angle = Math.PI / 2;
+        //spotLight.shadowDarkness = 0.9;
+        spotLight.shadow.camera.visible = true;
+        spotLight.shadow.camera.near
+        lightPosition4D.x = sunLight.position.x;
+        lightPosition4D.y = sunLight.position.y;
+        lightPosition4D.z = sunLight.position.z;
+        lightPosition4D.w = 0.001; = 2;
+        spotLight.shadow.camera.far= 50;
+        spotLight.shadow.camera.left = -45;
+        spotLight.shadow.camera.right = 45;
+        spotLight.shadow.camera.top = 45;
+        spotLight.shadow.camera.bottom = -45;
+        spotLight.shadow.mapSize.width = 1024;
+        spotLight.shadow.mapSize.height = 1024;
+        //scene.add(spotLight);
+        var helper = new THREE.CameraHelper(spotLight.shadow.camera);
+        //scene.add(helper);
+        spotLightShadowMapViewer = new THREE.ShadowMapViewer( spotLight );
+        spotLightShadowMapViewer.size.set( 256, 256 );
+        spotLightShadowMapViewer.position.set( 276, 10 );
+        
+        var sunLight = new THREE.DirectionalLight('rgb(255,255,255)', .9,100);
+        sunLight.position.set(20,40, 20);
+        sunLight.castShadow = true;
+        sunLight.lookAt(scene.position);
+        sunLight.shadow.camera.visible = true;
+        sunLight.shadow.camera.near = 0.1;
+        sunLight.shadow.camera.far= 200;
+        sunLight.shadow.camera.left = -100;
+        sunLight.shadow.camera.right = 100;
+        sunLight.shadow.camera.top = 100;
+        sunLight.shadow.camera.bottom = -100;
+        sunLight.shadow.camera.rotateX(-Math.PI / 2);
+        sunLight.shadow.mapSize.width = 1024;
+        sunLight.shadow.mapSize.height = 1024;
+        scene.add(sunLight);
+        //spotLight.shadow.camera.rotateX(- Math.PI / 2);
+        //scene.add(spotLight);
+        var helper = new THREE.CameraHelper(sunLight.shadow.camera);
         scene.add(helper);
     }
 
-
+    var matTops = [], matTopShadow;
+    var matBottoms = [], matBottomShadow;
+    var plane;
     function initModel() {
         //辅助工具
         var helper = new THREE.AxesHelper(50);
@@ -115,38 +145,18 @@
 
         //load mtl
         var mtlLoader = new THREE.MTLLoader();
-        var scale = .3; //模型缩小0.5
-
-        
-        var mat = new THREE.MeshLambertMaterial();
-        mat.map = new THREE.TextureLoader().load("./data/texture_1.png"), {}, function(){
-            renderer.render(scene);
-        };
-        mat.transparent = false;
-        mat.side = THREE.DoubleSide;
-        mat.depthWrite = true;
-        mat.opacity = 0.5;
-        mat.map.wrapS = THREE.RepeatWrapping;
-        mat.map.wrapT = THREE.RepeatWrapping;
-        mat.map.repeat.set(4, 1);
-        mat.color = new THREE.Color(0xffffff);
-        var sphereGeometry = new THREE.SphereGeometry(10, 40, 80);
-        var sphere = new THREE.Mesh(sphereGeometry, mat);
-        console.debug(sphere);
-        sphere.position.set(-30, -0, -30);
-        sphere.castShadow = true;
-        sphere.receiveShadow = false;
-        scene.add(sphere);
-        
-
-        var texture = new THREE.ImageUtils.loadTexture('./three_js_dev/examples/textures/sprite0.png');
-        var material = new THREE.MeshPhongMaterial({ 
+        var scale = .25; //模型缩小0.5
+/*
+        var texture = new THREE.TextureLoader().load('./three_js_dev/examples/textures/sprite0.png');
+        var material = new THREE.MeshLambertMaterial({ 
             map: texture,
             transparent: false,
-            opacity: 0.5,
-            side: THREE.DoubleSide,
-            depthWrite: true,
+            //opacity: 0.5,
+            side: THREE.FrontSide,
+            shadowSide: THREE.FrontSide,
+            depthWrite: false,
             });
+*/      
         
         mtlLoader.load('./data/top.mtl', function(materials){
             materials.preload();
@@ -155,24 +165,18 @@
             loader.setMaterials(materials);
             loader.load("./data/top.obj",function (loadedMesh) {
                 // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
-                var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
                 loadedMesh.children.forEach(function (child) {
                     if (child instanceof THREE.Mesh){
                         //child.material = material;   
-                        child.castShadow = true;
-                        //child.receiveShadow = false;
+                        matTop = child;
+                        matTop.castShadow = true;
+                        matTop.geometry.scale(scale, scale, scale);
+                        matTop.position.set(0, 56*scale, 0);
+                        matTops.push(matTop);
+                        scene.add(matTop);
                     }
-                    //child.geometry.computeFaceNormals();
-                    //child.geometry.computeVertexNormals();
                 });
                 
-                //模型缩小1/2
-                loadedMesh.scale.set(scale, scale, scale);
-                loadedMesh.position.set(0,0,0);
-                loadedMesh.castShadow = true;
-                loadedMesh.receiveShadow = false;
-
-                scene.add(loadedMesh);
             });
         });
 
@@ -185,52 +189,44 @@
                 var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
                 // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的发现了
                 loadedMesh.children.forEach(function (child) {
-                    //child.material = material;
                     if (child instanceof THREE.Mesh){
                         //child.material = material;
-                        child.castShadow = true;
-                        //child.receiveShadow = false;
+                        matBottom = child;
+                        matBottom.geometry.scale(scale, scale, scale);
+                        matBottom.position.set(0, 0, 0);
+                        matBottoms.push(matBottom);
+                        scene.add(matBottom);
                     }
-                    //child.geometry.computeFaceNormals();
-                   // child.geometry.computeVertexNormals();
                 });
-                               
-                //模型缩小1/2
-                loadedMesh.scale.set(scale, scale, scale);
-                loadedMesh.position.set(0,-56*scale,0); 
-                loadedMesh.castShadow = true;
-                loadedMesh.receiveShadow = false;
-                scene.add(loadedMesh);
             });
         });
 
 
         // Adding plane.
-        var geo = new THREE.PlaneBufferGeometry(200, 200);
-        var planeTexture = new THREE.ImageUtils.loadTexture('./data/textures/floor1.jpg');
-        var planeMat = new THREE.MeshPhongMaterial({ 
+        var geo = new THREE.BoxBufferGeometry(200, 0, 200);
+        var planeMat;
+        var planeTexture = new THREE.TextureLoader().load('./data/textures/floor2.jpg');
+
+        planeMat = new THREE.MeshLambertMaterial({ 
             map: planeTexture,
             transparent: false,
             opacity: 0.5,
             side: THREE.DoubleSide,
             depthWrite: true,
-            });
-        //var mat1 = new THREE.MeshBasicMaterial({color: 0xffff00});
-        var plane = new THREE.Mesh(geo, planeMat);
-        plane.rotateX( - Math.PI / 2);
-        plane.position.set(-20, -56*scale, -30);
+        });        
+
+        plane = new THREE.Mesh(geo, planeMat);
         plane.receiveShadow = true;
-        //plane.castShadow = false;
+        plane.needsUpdate = true;
         scene.add(plane);
-
+        console.debug(scene);
     }
-
 
     //初始化性能插件
     var stats;
     function initStats() {
         stats = new Stats();
-        document.body.appendChild(stats.dom);400
+        document.body.appendChild(stats.dom);
     }
 
 
@@ -258,14 +254,15 @@
     function render() {
         //requestAnimationFrame(animate);
         renderer.render( scene, camera );
+        //spotLightShadowMapViewer.render(renderer);
     }
 
 
     //窗口变动触发的函数
     function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        render();
+        camera.assunLightow.innerWidth / window.innerHeight;
+        camera.upsunLightionMatrix();
+        render();sunLight
         renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
