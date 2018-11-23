@@ -12,12 +12,37 @@
         canvas {
             display: block;
         }
+
+        #lightButton1 {
+				position: absolute;
+                transition: .5s ease;
+                top: 4%;
+                left:90%;
+		}
+        #lightButton2 {
+				position: absolute;
+                transition: .5s ease;
+                top: 8%;
+                left:90%;
+		}
+        #lightButton3 {
+				position: absolute;
+                transition: .5s ease;
+                top: 12%;
+                left:90%;
+		}
     </style>
 </head>
 <body onload="draw();">
 
 
 </body>
+
+<div id="container"></div>
+<input id="lightButton1" type="button" value="PointLight" onclick="lightButtonHandler('point')">
+<input id="lightButton2" type="button" value="DirectionalLight" onclick="lightButtonHandler('directional')">
+<input id="lightButton3" type="button" value="SpotLight" onclick="lightButtonHandler('spot')">
+
 <script src="./three_js_dev/build/three.js"></script>
 <script src="./three_js_dev/examples/js/loaders/MTLLoader.js"></script>
 <script src="./three_js_dev/examples/js/loaders/OBJLoader.js"></script>
@@ -78,7 +103,49 @@
 
 
     var ambientLight;
+    var sunLight;
+    var pointLight = [];
     var spotLight;
+    var useDirectionalLight = true;
+    function lightButtonHandler(type) {
+        console.debug("type: ", type);
+        if ( type == 'directional' ) {
+            //scene.background.setHex( 0x0096ff );
+            //groundMesh.material.color.setHex( 0x008200 );
+            for (var i = 0; i < MatroyNum; i++){
+                pointLight[i].visible = false;
+                matTops[i].material.transparent = false;
+                matBottoms[i].material.transparent = false;
+            }
+            sunLight.visible = true;
+            spotLight.visible = false;
+            document.getElementById( 'lightButton' ).value = "Switch to PointLight";
+            var helper = new THREE.CameraHelper(sunLight.shadow.camera);
+            //scene.add(helper);
+        } else if (type == 'spot'){
+            //scene.background.setHex( 0x000000 );
+            //groundMesh.material.color.setHex( 0x969696 );
+            for (var i = 0; i < MatroyNum; i++){
+                pointLight[i].visible = false;
+                matTops[i].material.transparent = false;
+                matBottoms[i].material.transparent = false;
+            }
+            spotLight.visible = true;
+            sunLight.visible = false;
+            document.getElementById( 'lightButton' ).value = "Switch to DirectionalLight";
+            var helper = new THREE.CameraHelper(spotLight.shadow.camera);
+            scene.add(helper);
+        } else{
+            spotLight.visible = false;
+            sunLight.visible = false;
+            for (var i = 0; i < MatroyNum; i++){
+                pointLight[i].visible = true;
+                matTops[i].material.transparent = true;
+                matBottoms[i].material.transparent = true;
+            }
+        }
+    }
+    
 
     function initLight() {
         ambientLight = new THREE.AmbientLight("#ffffff", .3);
@@ -87,31 +154,48 @@
         //告诉平行光需要开启阴影投射
         //light.castShadow = true;
         scene.add(ambientLight);
-
-        spotLight = new THREE.PointLight(0xff0000);
-        spotLight.position.set(5, 0, 0);
-       // spotLight.intensity = 1;
-        //spotLight.distance = 500;
-        //spotLight.castShadow = true;
-        spotLight.angle = Math.PI / 2;
-        //spotLight.shadowDarkness = 0.9;
+        
+        spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.intensity = 2;
+        spotLight.angle = Math.PI / 10;
+        spotLight.position.set(0, 150, 50);
+        spotLight.distance = 300;
+        spotLight.angle = Math.PI / 14;
+        spotLight.castShadow = true;
+        spotLight.shadow.bias = 0.01;
         spotLight.shadow.camera.visible = true;
         spotLight.shadow.camera.near = 2;
-        spotLight.shadow.camera.far= 50;
-        spotLight.shadow.camera.left = -45;
-        spotLight.shadow.camera.right = 45;
-        spotLight.shadow.camera.top = 45;
-        spotLight.shadow.camera.bottom = -45;
+        spotLight.shadow.camera.far = 300;
+        spotLight.shadow.camera.left = -100;
+        spotLight.shadow.camera.right = 100;
+        spotLight.shadow.camera.top = 100;
+        spotLight.shadow.camera.bottom = -100;
         spotLight.shadow.mapSize.width = 1024;
         spotLight.shadow.mapSize.height = 1024;
-        //scene.add(spotLight);
-        var helper = new THREE.CameraHelper(spotLight.shadow.camera);
-        //scene.add(helper);
-        spotLightShadowMapViewer = new THREE.ShadowMapViewer( spotLight );
-        spotLightShadowMapViewer.size.set( 256, 256 );
-        spotLightShadowMapViewer.position.set( 276, 10 );
+        spotLight.visible = false;
+        scene.add(spotLight);
         
-        var sunLight = new THREE.DirectionalLight('rgb(255,255,255)', .9,100);
+        for (var i=0; i < MatroyNum; i++){
+            pointLight.push(new THREE.PointLight(0xff0000));
+            pointLight[i].position.set(-60, 52*(initScale-i*scaleStep), 0);
+            pointLight[i].intensity = 3;
+            //pointLight.distance = 500;
+            //pointLight.shadowDarkness = 0.9;
+            pointLight[i].shadow.camera.visible = true;
+            pointLight[i].shadow.camera.near = 2;
+            pointLight[i].shadow.camera.far= 200;
+            pointLight[i].shadow.camera.left = -200;
+            pointLight[i].shadow.camera.right = 200;
+            pointLight[i].shadow.camera.top = 200;
+            pointLight[i].shadow.camera.bottom = -200;
+            pointLight[i].shadow.mapSize.width = 1024;
+            pointLight[i].shadow.mapSize.height = 1024;
+            pointLight[i].visible = false;
+            scene.add(pointLight[i]);
+        }
+
+        
+        sunLight = new THREE.DirectionalLight('rgb(255,255,255)', .9,100);
         sunLight.position.set(60, 100, 60);
         sunLight.castShadow = true;
         sunLight.lookAt(scene.position);
@@ -126,10 +210,8 @@
         sunLight.shadow.mapSize.width = 1024;
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
-        //spotLight.shadow.camera.rotateX(- Math.PI / 2);
-        //scene.add(spotLight);
-        var helper = new THREE.CameraHelper(sunLight.shadow.camera);
-        scene.add(helper);
+        //pointLight.shadow.camera.rotateX(- Math.PI / 2);
+        //scene.add(pointLight);
     }
 
     var matTops = [];
@@ -192,6 +274,8 @@
     
     function pushModel(mdlPart, mdl){
         console.debug("pushmdl:", mdl);
+        spotLight.target = matBottoms[0];
+        mdl.material.opacity = .4;
         if (mdlPart == "top"){
             matTops.push(mdl);
             scene.add(matTops[matTops.length-1]);
@@ -230,12 +314,14 @@
         planeMat = new THREE.MeshLambertMaterial({ 
             map: planeTexture,
             transparent: false,
-            opacity: 0.5,
+            opacity: 0.8,
             side: THREE.DoubleSide,
-            depthWrite: true,
+            shininess: 100,
+            //depthWrite: true,
         });        
 
         plane = new THREE.Mesh(geo, planeMat);
+        plane.position.set(0, -.8, 0);
         plane.receiveShadow = true;
         plane.needsUpdate = true;
         scene.add(plane);
@@ -274,7 +360,7 @@
     function render() {
         //requestAnimationFrame(animate);
         renderer.render( scene, camera );
-        //spotLightShadowMapViewer.render(renderer);
+        //pointLightShadowMapViewer.render(renderer);
     }
 
 
@@ -312,17 +398,22 @@
 			break;
 
 		case 1:
+            spotLight.target = matBottoms[1];
 			if (matBottoms[1].position.y >= 0) {
 				matBottoms[1].position.x += move_speed;
 				matBottoms[1].position.y = -40.0 / 900 * matBottoms[1].position.x * (60 + matBottoms[1].position.x);
 				var asc = (initScale - 1 * scaleStep) * 56;
 				matTops[1].position.x = matBottoms[1].position.x;
 				matTops[1].position.y = matBottoms[1].position.y + asc;
+                pointLight[1].position.x = matBottoms[1].position.x;
+                pointLight[1].position.y = matBottoms[1].position.y + asc - 4;
 
 				matBottoms[2].position.x = matBottoms[1].position.x;
 				matBottoms[2].position.y = matBottoms[1].position.y;
 				matTops[2].position.x = matTops[1].position.x;
 				matTops[2].position.y = matTops[1].position.y;
+                pointLight[2].position.x = matBottoms[1].position.x;
+                pointLight[2].position.y = matBottoms[1].position.y + asc - 4;
 			}
 			else {
 				state = 2;
@@ -342,12 +433,15 @@
 			break;
 
 		case 3:
+            spotLight.target = matBottoms[2]
 			if (matBottoms[2].position.y >= 0) {
 				matBottoms[2].position.x += move_speed;
 				matBottoms[2].position.y = 40.0 / 900 * matBottoms[2].position.x * (60 - matBottoms[2].position.x);
 				var asc = (initScale - 2 * scaleStep) * 56;
 				matTops[2].position.x = matBottoms[2].position.x;
 				matTops[2].position.y = matBottoms[2].position.y + asc;
+                pointLight[2].position.x = matBottoms[2].position.x;
+                pointLight[2].position.y = matBottoms[2].position.y + asc - 4;
 			}
 			else {
 				state = 4;
@@ -368,8 +462,8 @@
         initRender();
         initScene();
         initCamera();
-        initLight();
         initModel();
+        initLight();
         initControls();
         initStats();
         animate();
