@@ -58,7 +58,7 @@
 
 <script>
 
-    var renderer;
+    let renderer;
     function initRender() {
 
         renderer = new THREE.WebGLRenderer({antialias:true});
@@ -97,7 +97,7 @@
         //声明一个保存需求修改的相关数据的对象
         gui = {
         };
-        var datGui = new dat.GUI();
+        let datGui = new dat.GUI();
         //将设置属性添加到gui当中，gui.add(对象，属性，最小值，最大值）
     }
 
@@ -108,11 +108,10 @@
     var spotLight;
     var useDirectionalLight = true;
     function lightButtonHandler(type) {
-        console.debug("type: ", type);
         if ( type == 'directional' ) {
             //scene.background.setHex( 0x0096ff );
             //groundMesh.material.color.setHex( 0x008200 );
-            for (var i = 0; i < MatroyNum; i++){
+            for (let i = 0; i < MatroyNum; i++){
                 pointLight[i].visible = false;
                 matTops[i].material.transparent = false;
                 matBottoms[i].material.transparent = false;
@@ -120,12 +119,14 @@
             sunLight.visible = true;
             spotLight.visible = false;
             document.getElementById( 'lightButton' ).value = "Switch to PointLight";
-            var helper = new THREE.CameraHelper(sunLight.shadow.camera);
+            let helper = new THREE.CameraHelper(sunLight.shadow.camera);
             //scene.add(helper);
         } else if (type == 'spot'){
             //scene.background.setHex( 0x000000 );
             //groundMesh.material.color.setHex( 0x969696 );
-            for (var i = 0; i < MatroyNum; i++){
+            let planeMaterial = new THREE.MeshPhongMaterial( { color: 0x808080, dithering: true } );
+            plane.material = planeMaterial;
+            for (let i = 0; i < MatroyNum; i++){
                 pointLight[i].visible = false;
                 matTops[i].material.transparent = false;
                 matBottoms[i].material.transparent = false;
@@ -133,12 +134,12 @@
             spotLight.visible = true;
             sunLight.visible = false;
             document.getElementById( 'lightButton' ).value = "Switch to DirectionalLight";
-            var helper = new THREE.CameraHelper(spotLight.shadow.camera);
+            let helper = new THREE.CameraHelper(spotLight.shadow.camera);
             scene.add(helper);
         } else{
             spotLight.visible = false;
             sunLight.visible = false;
-            for (var i = 0; i < MatroyNum; i++){
+            for (let i = 0; i < MatroyNum; i++){
                 pointLight[i].visible = true;
                 matTops[i].material.transparent = true;
                 matBottoms[i].material.transparent = true;
@@ -157,7 +158,6 @@
         
         spotLight = new THREE.SpotLight(0xffffff);
         spotLight.intensity = 2;
-        spotLight.angle = Math.PI / 10;
         spotLight.position.set(0, 150, 50);
         spotLight.distance = 300;
         spotLight.angle = Math.PI / 14;
@@ -175,7 +175,7 @@
         spotLight.visible = false;
         scene.add(spotLight);
         
-        for (var i=0; i < MatroyNum; i++){
+        for (let i=0; i < MatroyNum; i++){
             pointLight.push(new THREE.PointLight(0xff0000));
             pointLight[i].position.set(-60, 52*(initScale-i*scaleStep), 0);
             pointLight[i].intensity = 3;
@@ -214,17 +214,17 @@
         //scene.add(pointLight);
     }
 
-    var matTops = [];
-    var matBottoms = [];
+    var matTops = new Array();
+    var matBottoms = new Array();
     var plane;
-    var MatroyNum = 3;
+    var MatroyNum = 5;
     var initScale = .25; //模型缩小0.5
     var scaleStep = .05;
     var mdlInterval = 0;
 
     function loadSingleModel(mdlPart, index, scale, callback){
-        var mdl;
-        var col;
+        let mdl;
+        let col;
         if(index == 0){
             col = 0x0000ff;
         } else if(index == 1){
@@ -232,18 +232,18 @@
         } else{
             col = 0x0000ff;
         }
-        var material = new THREE.MeshPhongMaterial( {
+        let material = new THREE.MeshPhongMaterial( {
             color: col,
             shininess: 150,
             transparent: false,
             specular: 0x222222
         } );
-        var mtlLoader = new THREE.MTLLoader();
+        let mtlLoader = new THREE.MTLLoader();
             mtlLoader.load(`./data/${mdlPart}_${index}.mtl`, function(materials){
                 console.debug(`./data/${mdlPart}_${index}.mtl`);
                 materials.preload();
                 //加载OBJ格式的模型
-                var loader = new THREE.OBJLoader();
+                let loader = new THREE.OBJLoader();
                 loader.setMaterials(materials);
                 loader.load(`./data/${mdlPart}.obj`,function (loadedMesh) {
                     // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
@@ -253,7 +253,7 @@
                             mdl = child;
                             mdl.castShadow = true;
                             mdl.geometry.scale(scale, scale, scale);
-                            var z;
+                            let z;
                             if (mdlPart == "top"){
                                 z = 56 * scale;
                             } else{
@@ -287,9 +287,9 @@
 
     function loadMatroyModels() {
         //load mtl
-        var i;
+        let i;
         for (i = 0; i < MatroyNum; i++){
-            var scale = initScale - i * scaleStep;
+            let scale = initScale - i * scaleStep;
             loadSingleModel("top", i, scale, pushModel);
             loadSingleModel("bottom", i, scale, pushModel);
         }
@@ -297,33 +297,32 @@
 
     function initModel() {
         //辅助工具
-        var helper = new THREE.AxesHelper(50);
+        let helper = new THREE.AxesHelper(50);
         scene.add(helper);
   
         loadMatroyModels();
-        var i;
+        let i;
         for (i = 0; i < MatroyNum; i++){
             //scene.add(matTops[i]);
             //scene.add(matBottoms[i]);
         }
         // Adding plane.
-        var geo = new THREE.BoxBufferGeometry(200, 0, 200);
-        var planeMat;
-        var planeTexture = new THREE.TextureLoader().load('./data/textures/floor2.jpg');
+        let geo = new THREE.BoxBufferGeometry(200, 0, 200);
+        let planeMat;
+        let planeTexture = new THREE.TextureLoader().load('./data/textures/floor2.jpg');
 
         planeMat = new THREE.MeshLambertMaterial({ 
             map: planeTexture,
             transparent: false,
+            dithering: true,
             opacity: 0.8,
             side: THREE.DoubleSide,
             shininess: 100,
             //depthWrite: true,
-        });        
-
+        });        				
         plane = new THREE.Mesh(geo, planeMat);
         plane.position.set(0, -.8, 0);
         plane.receiveShadow = true;
-        plane.needsUpdate = true;
         scene.add(plane);
         console.debug(scene);
     }
@@ -366,6 +365,7 @@
 
     //窗口变动触发的函数
     function onWindowResize() {
+        camera.assunLightow
         camera.assunLightow.innerWidth / window.innerHeight;
         camera.upsunLightionMatrix();
         render();
@@ -374,82 +374,113 @@
 
 
 	var clock = new THREE.Clock();
+	var frameTime = clock.getDelta();
+    var CELL = 80;
+
+    function moveTopUp(i, cell){
+        var move_speed = 70 * frameTime;
+        var rotate_speed = 1.0 * frameTime;
+        //console.debug("frameTime:", frameTime);
+        //console.debug("moveTop:", matTops[i], "i: ", i);
+        if (matTops[i]){
+            //console.debug("moveTop step in");
+            if (matTops[i].position.y < cell){
+                matTops[i].position.setY(matTops[i].position.y + move_speed);// += move_speed;
+                //console.debug(matTops[i].position);
+                //console.debug(matTops[i].position.y, move_speed);
+                //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);
+            }
+            else {
+                state += 1;
+            }
+            matTops[i].rotation.y += rotate_speed;
+        }
+    }
+
+    function moveTopDown(i, ground){
+        var move_speed = 70 * frameTime;
+        var rotate_speed = 1.0 * frameTime;
+        //console.debug("frameTime:", frameTime);
+        //console.debug("moveTop:", matTops[i], "i: ", i);
+        if (matTops[i]){
+            //console.debug("moveTop step in");
+            if (matTops[i].position.y > ground){
+                matTops[i].position.setY(matTops[i].position.y - move_speed);// += move_speed;
+                //console.debug(matTops[i].position);
+                //console.debug(matTops[i].position.y, move_speed);
+                //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);
+            }
+            else {
+                state += 1;
+            }
+            matTops[i].rotation.y += rotate_speed;
+        }
+    }
+
+    var init_y_move_speed = 5;
+    var y_move_speed = init_y_move_speed;
+    function moveWhole(i){
+        var x_move_speed = 35 * frameTime;
+        var rotate_speed = 1.0 * frameTime;
+        var g = 9.8 * frameTime;
+        //console.debug(move_speed, init_y_move_speed);
+        spotLight.target = matBottoms[i];
+        pointLight[i-1].visible = false;
+        if (matBottoms[i].position.y >= 0) {
+            matBottoms[i].position.x += x_move_speed;
+            matBottoms[i].position.y += y_move_speed;
+            y_move_speed -= g;
+            if (matBottoms[i].position.y < 0){
+                matBottoms[i].position.y = -0.001;
+            }
+            let asc = (initScale - i * scaleStep) * 56;
+            matTops[i].position.x = matBottoms[i].position.x;
+            matTops[i].position.y = matBottoms[i].position.y + asc;
+            pointLight[i].position.x = matBottoms[i].position.x;
+            pointLight[i].position.y = matBottoms[i].position.y + asc - 4;
+
+            for (let j = i+1; j < MatroyNum; j++){
+                matBottoms[j].position.x = matBottoms[i].position.x;
+                matBottoms[j].position.y = matBottoms[i].position.y;
+                matTops[j].position.x = matBottoms[j].position.x;
+                let asc = (initScale - j * scaleStep) * 56;
+                matTops[j].position.y = matBottoms[j].position.y + asc;
+                pointLight[j].position.x = matBottoms[j].position.x;
+                pointLight[j].position.y = matTops[j].position.y - 4;
+            }
+        }
+        else {
+            state += 1;
+            y_move_speed = init_y_move_speed;
+            // add for error
+            if (i+1 < matBottoms.length){
+                matBottoms[(i+1)].position.y = 0;
+            }
+        }
+    }
 	
 	var state = 0;
     function animate() {
+		frameTime = clock.getDelta();
+		let move_speed = 10 * frameTime;
+		let rotate_speed = 1.0 * frameTime;
+        if (Math.floor(state/3) < MatroyNum -1){
+            let index_mat = Math.floor(state/3);
+            switch(state % 3){
+                case 0:
+                    moveTopUp(Math.floor(state/3), CELL*(1-index_mat*0.2));
+                    break;
+                case 1:
+                    moveWhole(Math.floor(state/3)+1);
+                    break;
+                case 2:
+                    let scale = initScale - Math.floor(state/3) * scaleStep;
+                    moveTopDown(Math.floor(state/3), scale*56);
+            }
+        }
+
         //更新控制器
         requestAnimationFrame(animate);
-
-		frameTime = clock.getDelta();
-        var CELL = 60;
-		var move_speed = 10 * frameTime;
-		var rotate_speed = 1.0 * frameTime;
-        
-		switch (state)
-		{
-		case 0:
-			if (matTops[0].position.y < CELL) {
-				matTops[0].position.y += move_speed;
-			}
-			else {
-				state = 1;
-			}
-			matTops[0].rotation.y += rotate_speed;
-			break;
-
-		case 1:
-            spotLight.target = matBottoms[1];
-			if (matBottoms[1].position.y >= 0) {
-				matBottoms[1].position.x += move_speed;
-				matBottoms[1].position.y = -40.0 / 900 * matBottoms[1].position.x * (60 + matBottoms[1].position.x);
-				var asc = (initScale - 1 * scaleStep) * 56;
-				matTops[1].position.x = matBottoms[1].position.x;
-				matTops[1].position.y = matBottoms[1].position.y + asc;
-                pointLight[1].position.x = matBottoms[1].position.x;
-                pointLight[1].position.y = matBottoms[1].position.y + asc - 4;
-
-				matBottoms[2].position.x = matBottoms[1].position.x;
-				matBottoms[2].position.y = matBottoms[1].position.y;
-				matTops[2].position.x = matTops[1].position.x;
-				matTops[2].position.y = matTops[1].position.y;
-                pointLight[2].position.x = matBottoms[1].position.x;
-                pointLight[2].position.y = matBottoms[1].position.y + asc - 4;
-			}
-			else {
-				state = 2;
-				// add for error
-				matBottoms[2].position.y = 0;
-			}
-			break;
-
-		case 2:
-			if (matTops[1].position.y < 0.8 * CELL) {
-				matTops[1].position.y += move_speed;
-			}
-			else {
-				state = 3;
-			}
-			matTops[1].rotation.y += rotate_speed;
-			break;
-
-		case 3:
-            spotLight.target = matBottoms[2]
-			if (matBottoms[2].position.y >= 0) {
-				matBottoms[2].position.x += move_speed;
-				matBottoms[2].position.y = 40.0 / 900 * matBottoms[2].position.x * (60 - matBottoms[2].position.x);
-				var asc = (initScale - 2 * scaleStep) * 56;
-				matTops[2].position.x = matBottoms[2].position.x;
-				matTops[2].position.y = matBottoms[2].position.y + asc;
-                pointLight[2].position.x = matBottoms[2].position.x;
-                pointLight[2].position.y = matBottoms[2].position.y + asc - 4;
-			}
-			else {
-				state = 4;
-			}
-			break;
-		}
-        
-
         render();
         //更新性能插件
         stats.update();
