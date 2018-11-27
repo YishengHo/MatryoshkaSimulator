@@ -15,22 +15,44 @@
 
         #lightButton1 {
 				position: absolute;
+                background-color: white;
+                color: black;
+                border: 2px solid #4CAF50; /* Green */
                 transition: .5s ease;
                 top: 4%;
                 left:90%;
 		}
         #lightButton2 {
 				position: absolute;
+                background-color: white;
+                color: black;
+                border: 2px solid #1E90FF; /* Green */
                 transition: .5s ease;
                 top: 8%;
                 left:90%;
 		}
         #lightButton3 {
 				position: absolute;
+                background-color: white;
+                color: black;
+                border: 2px solid #B22222; /* Green */
                 transition: .5s ease;
                 top: 12%;
                 left:90%;
 		}
+
+        #playButton {
+            position: absolute;
+            background-color: #B22222;
+            color: black;
+            border: 2px solid #B22222; /* Green */
+            padding: 15px 32px;
+            font-size: 30px;
+            transition: .5s ease;
+            top: 85%;
+            left:47%;
+        }
+                
     </style>
 </head>
 <body onload="draw();">
@@ -42,6 +64,7 @@
 <input id="lightButton1" type="button" value="PointLight" onclick="lightButtonHandler('point')">
 <input id="lightButton2" type="button" value="DirectionalLight" onclick="lightButtonHandler('directional')">
 <input id="lightButton3" type="button" value="SpotLight" onclick="lightButtonHandler('spot')">
+<input id="playButton" type="button" value="Play" onclick="playButtonHandler()">
 
 <script src="./three_js_dev/build/three.js"></script>
 <script src="./three_js_dev/examples/js/loaders/MTLLoader.js"></script>
@@ -107,6 +130,18 @@
     var pointLight = [];
     var spotLight;
     var useDirectionalLight = true;
+    var play = false;
+    function playButtonHandler(){
+        if (play == false){
+            play = true;
+            document.getElementById( 'playButton' ).value = "Pause";
+        } else{
+            play = false;
+            document.getElementById( 'playButton' ).value = "Play";
+        }
+    }
+
+
     function lightButtonHandler(type) {
         if ( type == 'directional' ) {
             //scene.background.setHex( 0x0096ff );
@@ -118,13 +153,13 @@
             }
             sunLight.visible = true;
             spotLight.visible = false;
-            document.getElementById( 'lightButton' ).value = "Switch to PointLight";
+            plane.material = planeMat;
             let helper = new THREE.CameraHelper(sunLight.shadow.camera);
             //scene.add(helper);
         } else if (type == 'spot'){
             //scene.background.setHex( 0x000000 );
             //groundMesh.material.color.setHex( 0x969696 );
-            let planeMaterial = new THREE.MeshPhongMaterial( { color: 0x808080, dithering: true } );
+            let planeMaterial = new THREE.MeshPhongMaterial( { color: 0xDEB887, dithering: true } );
             plane.material = planeMaterial;
             for (let i = 0; i < MatroyNum; i++){
                 pointLight[i].visible = false;
@@ -133,9 +168,8 @@
             }
             spotLight.visible = true;
             sunLight.visible = false;
-            document.getElementById( 'lightButton' ).value = "Switch to DirectionalLight";
             let helper = new THREE.CameraHelper(spotLight.shadow.camera);
-            scene.add(helper);
+            //scene.add(helper);
         } else{
             spotLight.visible = false;
             sunLight.visible = false;
@@ -217,6 +251,7 @@
     var matTops = new Array();
     var matBottoms = new Array();
     var plane;
+    var planeMat;
     var MatroyNum = 5;
     var initScale = .25; //模型缩小0.5
     var scaleStep = .05;
@@ -298,7 +333,7 @@
     function initModel() {
         //辅助工具
         let helper = new THREE.AxesHelper(50);
-        scene.add(helper);
+        //scene.add(helper);
   
         loadMatroyModels();
         let i;
@@ -308,7 +343,7 @@
         }
         // Adding plane.
         let geo = new THREE.BoxBufferGeometry(200, 0, 200);
-        let planeMat;
+        planeMat;
         let planeTexture = new THREE.TextureLoader().load('./data/textures/floor2.jpg');
 
         planeMat = new THREE.MeshLambertMaterial({ 
@@ -317,8 +352,7 @@
             dithering: true,
             opacity: 0.8,
             side: THREE.DoubleSide,
-            shininess: 100,
-            //depthWrite: true,
+            depthWrite: true,
         });        				
         plane = new THREE.Mesh(geo, planeMat);
         plane.position.set(0, -.8, 0);
@@ -411,13 +445,15 @@
                 //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);
             }
             else {
+                play = false;
+                document.getElementById( 'playButton' ).value = "Play";
                 state += 1;
             }
             matTops[i].rotation.y += rotate_speed;
         }
     }
 
-    var init_y_move_speed = 5;
+    var init_y_move_speed = 4;
     var y_move_speed = init_y_move_speed;
     function moveWhole(i){
         var x_move_speed = 35 * frameTime;
@@ -464,20 +500,23 @@
 		frameTime = clock.getDelta();
 		let move_speed = 10 * frameTime;
 		let rotate_speed = 1.0 * frameTime;
-        if (Math.floor(state/3) < MatroyNum -1){
-            let index_mat = Math.floor(state/3);
-            switch(state % 3){
-                case 0:
-                    moveTopUp(Math.floor(state/3), CELL*(1-index_mat*0.2));
-                    break;
-                case 1:
-                    moveWhole(Math.floor(state/3)+1);
-                    break;
-                case 2:
-                    let scale = initScale - Math.floor(state/3) * scaleStep;
-                    moveTopDown(Math.floor(state/3), scale*56);
+        if (play){
+            if (Math.floor(state/3) < MatroyNum -1){
+                let index_mat = Math.floor(state/3);
+                switch(state % 3){
+                    case 0:
+                        moveTopUp(Math.floor(state/3), CELL*(1-index_mat*0.2));
+                        break;
+                    case 1:
+                        moveWhole(Math.floor(state/3)+1);
+                        break;
+                    case 2:
+                        let scale = initScale - Math.floor(state/3) * scaleStep;
+                        moveTopDown(Math.floor(state/3), scale*56);
+                }
             }
         }
+
 
         //更新控制器
         requestAnimationFrame(animate);
