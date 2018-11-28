@@ -175,12 +175,15 @@
             plane.material = planeMaterial;
             spotLight.visible = false;
             sunLight.visible = false;
+            pointLight[0].visible = true;
+            
             for (let i = 0; i < MatroyNum; i++){
-                pointLight[i].visible = true;
+                //pointLight[i].visible = true;
                 pointLight[i].target = matBottoms[i];
                 //matTops[i].material.transparent = true;
                 //matBottoms[i].material.transparent = true;
             }
+            
         }
     }
     
@@ -197,7 +200,7 @@
         spotLight.intensity = 2;
         spotLight.position.set(0, 150, 50);
         spotLight.distance = 300;
-        spotLight.angle = Math.PI / 23;
+        spotLight.angle = Math.PI / 23.5;
         spotLight.castShadow = true;
         spotLight.shadow.bias = 0.01;
         spotLight.shadow.camera.visible = true;
@@ -459,6 +462,7 @@
             else {
                 play = false;
                 document.getElementById( 'playButton' ).value = "Play";
+                pointLight[i].visible = false;
                 state += 1;
             }
             matTops[i].rotation.y += rotate_speed;
@@ -477,8 +481,6 @@
         if (matBottoms[i].position.y >= 0) {
             matBottoms[i].position.x += x_move_speed;
             matBottoms[i].position.y += y_move_speed;
-            pointLight[i].position.x = matBottoms[i].position.x;
-            pointLight[i].position.y += y_move_speed;
             y_move_speed -= g;
             if (matBottoms[i].position.y < 0){
                 matBottoms[i].position.y = -0.001;
@@ -486,22 +488,23 @@
             let asc = (initScale - i * scaleStep) * 56;
             matTops[i].position.x = matBottoms[i].position.x;
             matTops[i].position.y = matBottoms[i].position.y + asc;
-            //pointLight[i].position.x = matBottoms[i].position.x;
-            //pointLight[i].position.y = matBottoms[i].position.y + asc - 4;
+            pointLight[i].position.x = matBottoms[i].position.x;
+            pointLight[i].position.y = matBottoms[i].position.y + asc*1.9;
 
             for (let j = i+1; j < MatroyNum; j++){
-                pointLight[i].position.x = matBottoms[i].position.x;
-                pointLight[i].position.y += y_move_speed;
+                //pointLight[i].position.x = matBottoms[i].position.x;
+                //pointLight[i].position.y += y_move_speed;
                 matBottoms[j].position.x = matBottoms[i].position.x;
                 matBottoms[j].position.y = matBottoms[i].position.y;
                 matTops[j].position.x = matBottoms[j].position.x;
                 let asc = (initScale - j * scaleStep) * 56;
                 matTops[j].position.y = matBottoms[j].position.y + asc;
                 //pointLight[j].position.x = matBottoms[j].position.x;
-                //pointLight[j].position.y = matTops[j].position.y - 4;
+                //pointLight[j].position.y = matBottoms[j].position.y + asc;
             }
         }
         else {
+            pointLight[i].visible = true;
             state += 1;
             y_move_speed = init_y_move_speed;
             // add for error
