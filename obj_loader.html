@@ -171,12 +171,15 @@
             let helper = new THREE.CameraHelper(spotLight.shadow.camera);
             //scene.add(helper);
         } else{
+            let planeMaterial = new THREE.MeshPhongMaterial( { color: 0xDEB887, dithering: true } );
+            plane.material = planeMaterial;
             spotLight.visible = false;
             sunLight.visible = false;
             for (let i = 0; i < MatroyNum; i++){
                 pointLight[i].visible = true;
-                matTops[i].material.transparent = true;
-                matBottoms[i].material.transparent = true;
+                pointLight[i].target = matBottoms[i];
+                //matTops[i].material.transparent = true;
+                //matBottoms[i].material.transparent = true;
             }
         }
     }
@@ -194,7 +197,7 @@
         spotLight.intensity = 2;
         spotLight.position.set(0, 150, 50);
         spotLight.distance = 300;
-        spotLight.angle = Math.PI / 14;
+        spotLight.angle = Math.PI / 23;
         spotLight.castShadow = true;
         spotLight.shadow.bias = 0.01;
         spotLight.shadow.camera.visible = true;
@@ -210,11 +213,14 @@
         scene.add(spotLight);
         
         for (let i=0; i < MatroyNum; i++){
-            pointLight.push(new THREE.PointLight(0xff0000));
-            pointLight[i].position.set(-60, 52*(initScale-i*scaleStep), 0);
-            pointLight[i].intensity = 3;
+        //for (let i=0; i < 1; i++){
+            pointLight.push(new THREE.SpotLight(0xffffff));
+            pointLight[i].position.set(-60, 56*1.9*(initScale-i*scaleStep), 0);
+            pointLight[i].intensity = 1;
+            pointLight[i].castShadow = true;
+            pointLight[i].angle = Math.PI / 10;
             //pointLight.distance = 500;
-            //pointLight.shadowDarkness = 0.9;
+            pointLight[i].shadowDarkness = 0.9;
             pointLight[i].shadow.camera.visible = true;
             pointLight[i].shadow.camera.near = 2;
             pointLight[i].shadow.camera.far= 200;
@@ -261,11 +267,15 @@
         let mdl;
         let col;
         if(index == 0){
-            col = 0x0000ff;
+            col = 0xff0000;
         } else if(index == 1){
             col = 0x00ff00;
-        } else{
+        } else if(index == 2){
             col = 0x0000ff;
+        } else if(index == 3){
+            col = 0xffff00;
+        } else{
+            col = 0x00ffff;
         }
         let material = new THREE.MeshPhongMaterial( {
             color: col,
@@ -292,7 +302,7 @@
                             if (mdlPart == "top"){
                                 z = 56 * scale;
                             } else{
-                                z = 0;
+                                z = 0+index*0.5;
                             }
                             //mdl.position.set(mdlInterval*index, z, 0);
 							mdl.position.set(-60, z, 0);
@@ -341,11 +351,11 @@
             //scene.add(matTops[i]);
             //scene.add(matBottoms[i]);
         }
+    
         // Adding plane.
         let geo = new THREE.BoxBufferGeometry(200, 0, 200);
         planeMat;
         let planeTexture = new THREE.TextureLoader().load('./data/textures/floor2.jpg');
-
         planeMat = new THREE.MeshLambertMaterial({ 
             map: planeTexture,
             transparent: false,
@@ -420,6 +430,7 @@
             //console.debug("moveTop step in");
             if (matTops[i].position.y < cell){
                 matTops[i].position.setY(matTops[i].position.y + move_speed);// += move_speed;
+                pointLight[i].position.setY(pointLight[i].position.y + move_speed);
                 //console.debug(matTops[i].position);
                 //console.debug(matTops[i].position.y, move_speed);
                 //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);
@@ -440,6 +451,7 @@
             //console.debug("moveTop step in");
             if (matTops[i].position.y > ground){
                 matTops[i].position.setY(matTops[i].position.y - move_speed);// += move_speed;
+                pointLight[i].position.setY(pointLight[i].position.y - move_speed);
                 //console.debug(matTops[i].position);
                 //console.debug(matTops[i].position.y, move_speed);
                 //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);
@@ -461,10 +473,12 @@
         var g = 9.8 * frameTime;
         //console.debug(move_speed, init_y_move_speed);
         spotLight.target = matBottoms[i];
-        pointLight[i-1].visible = false;
+        //pointLight[i-1].visible = false;
         if (matBottoms[i].position.y >= 0) {
             matBottoms[i].position.x += x_move_speed;
             matBottoms[i].position.y += y_move_speed;
+            pointLight[i].position.x = matBottoms[i].position.x;
+            pointLight[i].position.y += y_move_speed;
             y_move_speed -= g;
             if (matBottoms[i].position.y < 0){
                 matBottoms[i].position.y = -0.001;
@@ -472,17 +486,19 @@
             let asc = (initScale - i * scaleStep) * 56;
             matTops[i].position.x = matBottoms[i].position.x;
             matTops[i].position.y = matBottoms[i].position.y + asc;
-            pointLight[i].position.x = matBottoms[i].position.x;
-            pointLight[i].position.y = matBottoms[i].position.y + asc - 4;
+            //pointLight[i].position.x = matBottoms[i].position.x;
+            //pointLight[i].position.y = matBottoms[i].position.y + asc - 4;
 
             for (let j = i+1; j < MatroyNum; j++){
+                pointLight[i].position.x = matBottoms[i].position.x;
+                pointLight[i].position.y += y_move_speed;
                 matBottoms[j].position.x = matBottoms[i].position.x;
                 matBottoms[j].position.y = matBottoms[i].position.y;
                 matTops[j].position.x = matBottoms[j].position.x;
                 let asc = (initScale - j * scaleStep) * 56;
                 matTops[j].position.y = matBottoms[j].position.y + asc;
-                pointLight[j].position.x = matBottoms[j].position.x;
-                pointLight[j].position.y = matTops[j].position.y - 4;
+                //pointLight[j].position.x = matBottoms[j].position.x;
+                //pointLight[j].position.y = matTops[j].position.y - 4;
             }
         }
         else {
