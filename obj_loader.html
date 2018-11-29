@@ -110,21 +110,31 @@
 
     var scene;
 	var cubeTextureLoader;
+    var milkyTexture;
+    var skyTexture;
+
     function initScene() {
         scene = new THREE.Scene();
 		cubeTextureLoader = new THREE.CubeTextureLoader();
 
 		cubeTextureLoader.setPath('./three_js_dev/examples/textures/cube/skyboxsun25deg/');
 
-		var cubeTexture = cubeTextureLoader.load( [
+		var skyTexture = cubeTextureLoader.load( [
             'px.jpg', 'nx.jpg',
             'py.jpg', 'ny.jpg',
             'pz.jpg', 'nz.jpg'
         ] );
-		//textureCube.format = THREE.RGBFormat;
-		//textureCube.mapping = THREE.CubeReflectionMapping;
 
-		scene.background = cubeTexture;
+        
+		cubeTextureLoader.setPath('./three_js_dev/examples/textures/cube/MilkyWay/');
+
+        milkyTexture = cubeTextureLoader.load( [
+            'dark-s_px.jpg', 'dark-s_nx.jpg',
+            'dark-s_py.jpg', 'dark-s_ny.jpg',
+            'dark-s_pz.jpg', 'dark-s_nz.jpg'
+        ] );
+
+		scene.background = skyTexture;
     }
 
 
@@ -142,6 +152,7 @@
     var ambientLight;
     var sunLight;
     var pointLight = [];
+    var pointLight_bot = [];
     var spotLight;
     var useDirectionalLight = true;
     var play = false;
@@ -159,8 +170,8 @@
 
     function lightButtonHandler(type) {
         if ( type == 'directional' ) {
-            //scene.background.setHex( 0x0096ff );
-            //groundMesh.material.color.setHex( 0x008200 );
+            scene.background = skyTexture;
+            plane.material = planeSkyMat;
             for (let i = 0; i < MatroyNum; i++){
                 pointLight[i].visible = false;
                 matTops[i].material.transparent = false;
@@ -171,37 +182,34 @@
             plane.material = planeMat;
 			isPL = false;
             let helper = new THREE.CameraHelper(sunLight.shadow.camera);
-            //scene.add(helper);
         } else if (type == 'spot'){
-            //scene.background.setHex( 0x000000 );
-            //groundMesh.material.color.setHex( 0x969696 );
-            let planeMaterial = new THREE.MeshPhongMaterial( { color: 0xDEB887, dithering: true } );
-            plane.material = planeMaterial;
+            scene.background = milkyTexture;
+            plane.material = planeMilkyMat;
+            ambientLight.intension = 0.001;
             for (let i = 0; i < MatroyNum; i++){
                 pointLight[i].visible = false;
                 matTops[i].material.transparent = false;
                 matBottoms[i].material.transparent = false;
             }
             spotLight.visible = true;
-            //sunLight.visible = false;
-			sunLight.intension = .2;
+            sunLight.visible = false;
+			sunLight.intension = .00001;
 			isPL = false;
             let helper = new THREE.CameraHelper(spotLight.shadow.camera);
             //scene.add(helper);
         } else{
-            let planeMaterial = new THREE.MeshPhongMaterial( { color: 0xDEB887, dithering: true } );
-            plane.material = planeMaterial;
+            scene.background = milkyTexture;
+            plane.material = planeMilkyMat;
+            ambientLight.intension = 0.001;
             spotLight.visible = false;
-            //sunLight.visible = false;
-			sunLight.intension = .2;
+            sunLight.visible = false;
+			sunLight.intension = .00001;
             pointLight[0].visible = true;
+            pointLight_bot[0].visible = true;
 			isPL = true;
             
             for (let i = 0; i < MatroyNum; i++){
-                //pointLight[i].visible = true;
                 pointLight[i].target = matBottoms[i];
-                //matTops[i].material.transparent = true;
-                //matBottoms[i].material.transparent = true;
             }
             
         }
@@ -211,13 +219,10 @@
     function initLight() {
         ambientLight = new THREE.AmbientLight("#ffffff", .3);
         ambientLight.position.set(0,0.1,0);
-        //light.position.set(0,0,200);
-        //告诉平行光需要开启阴影投射
-        //light.castShadow = true;
         scene.add(ambientLight);
         
-        spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.intensity = 2;
+        spotLight = new THREE.SpotLight(0xffff22);
+        spotLight.intensity = 3;
         spotLight.position.set(0, 150, 50);
         spotLight.distance = 300;
         spotLight.angle = Math.PI / 23.5;
@@ -236,13 +241,11 @@
         scene.add(spotLight);
         
         for (let i=0; i < MatroyNum; i++){
-        //for (let i=0; i < 1; i++){
-            pointLight.push(new THREE.SpotLight(0xffffff));
-            pointLight[i].position.set(-60, 56*1.9*(initScale-i*scaleStep), 0);
-            pointLight[i].intensity = 1;
+            pointLight.push(new THREE.PointLight(0xffff22));
+            pointLight[i].position.set(-60, 56*1.1*(initScale-i*scaleStep), 0);
+            pointLight[i].intensity = 3;
             pointLight[i].castShadow = true;
             pointLight[i].angle = Math.PI / 10;
-            //pointLight.distance = 500;
             pointLight[i].shadowDarkness = 0.9;
             pointLight[i].shadow.camera.visible = true;
             pointLight[i].shadow.camera.near = 2;
@@ -254,9 +257,11 @@
             pointLight[i].shadow.mapSize.width = 1024;
             pointLight[i].shadow.mapSize.height = 1024;
             pointLight[i].visible = false;
+            pointLight_bot.push(pointLight[i]);
+            pointLight_bot[i].position.set(-60, 5, 0);
             scene.add(pointLight[i]);
+            scene.add(pointLight_bot[i]);
         }
-
         
         sunLight = new THREE.DirectionalLight('rgb(255,255,255)', .9,100);
         sunLight.position.set(60, 100, 60);
@@ -273,8 +278,6 @@
         sunLight.shadow.mapSize.width = 1024;
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
-        //pointLight.shadow.camera.rotateX(- Math.PI / 2);
-        //scene.add(pointLight);
     }
 
     var matTops = new Array();
@@ -282,7 +285,7 @@
     var plane;
     var planeMat;
     var MatroyNum = 5;
-    var initScale = .25; //模型缩小0.5
+    var initScale = .25; //scale the model to .25
     var scaleStep = .05;
     var mdlInterval = 0;
 
@@ -291,24 +294,6 @@
 
     function loadSingleModel(mdlPart, index, scale, callback){
         let mdl;
-        let col;
-        if(index == 0){
-            col = 0x2F4F4F;
-        } else if(index == 1){
-            col = 0x00ff00;
-        } else if(index == 2){
-            col = 0x0000ff;
-        } else if(index == 3){
-            col = 0xffff00;
-        } else{
-            col = 0x00ffff;
-        }
-        let material = new THREE.MeshPhongMaterial( {
-            color: col,
-            shininess: 150,
-            transparent: false,
-            specular: 0x222222
-        } );
 
 		// material texture loading
 		var urls = new Array();
@@ -353,9 +338,9 @@
 					mdl.geometry.scale(scale, scale, scale);
 					let z;
 					if (mdlPart == "top"){
-						z = 56 * scale;
+						z = 56 * scale+index*5;
 					} else{
-						z = 0+index*0.5;
+						z = index*5;
 					}
 					//mdl.position.set(mdlInterval*index, z, 0);
 					mdl.position.set(-60, z, 0);
@@ -382,6 +367,7 @@
         }
     }
 
+
     function loadMatroyModels() {
         //load mtl
         let i;
@@ -392,38 +378,44 @@
         }
     }
 	
-	
+
+	var planeSkyMat;
+    var planeMilkyMat;
     function initModel() {
         //辅助工具
         let helper = new THREE.AxesHelper(50);
         //scene.add(helper);
   
         loadMatroyModels();
-        let i;
-        for (i = 0; i < MatroyNum; i++){
-            //scene.add(matTops[i]);
-            //scene.add(matBottoms[i]);
-        }
-
 
         // Adding plane.
         let geo = new THREE.BoxBufferGeometry(200, 0, 200);
-        planeMat;
         let planeTexture = new THREE.TextureLoader().load('./three_js_dev/examples/textures/brick_bump.jpg');
-        planeMat = new THREE.MeshLambertMaterial({ 
+        planeSkyMat = new THREE.MeshPhongMaterial({ 
             map: planeTexture,
             transparent: false,
-            dithering: true,
             opacity: 0.8,
             side: THREE.DoubleSide,
+            flatShading:true,
             depthWrite: true,
         });        				
-        plane = new THREE.Mesh(geo, planeMat);
+        planeTexture = new THREE.TextureLoader().load('./three_js_dev/examples/textures/hardwood2_roughness.jpg');
+        planeMilkyMat = new THREE.MeshPhongMaterial({ 
+            map: planeTexture,
+            transparent: false,
+            opacity: 0.8,
+            side: THREE.DoubleSide,
+            flatShading:true,
+            depthWrite: true,
+        }); 
+
+        plane = new THREE.Mesh(geo, planeSkyMat);
         plane.position.set(0, -.8, 0);
         plane.receiveShadow = true;
         scene.add(plane);
         console.debug(scene);
     }
+
 
     //初始化性能插件
     var stats;
@@ -474,17 +466,21 @@
 	var clock = new THREE.Clock();
 	var frameTime = clock.getDelta();
     var CELL = 80;
-
+    var init_move_speed_up = 4;
     function moveTopUp(i, cell){
         var move_speed = 70 * frameTime;
+        var g = 9.8 * frameTime;
         var rotate_speed = 1.0 * frameTime;
-        //console.debug("frameTime:", frameTime);
-        //console.debug("moveTop:", matTops[i], "i: ", i);
         if (matTops[i]){
             //console.debug("moveTop step in");
             if (matTops[i].position.y < cell){
                 matTops[i].position.setY(matTops[i].position.y + move_speed);// += move_speed;
-                pointLight[i].position.setY(pointLight[i].position.y + move_speed);
+                pointLight[i].position.setY(matTops[i].position.y + 56*.8*(initScale-i*scaleStep));
+				if (matTops[i].position.y > cell){
+					matTops[i].position.y = cell + 0.001;
+					pointLight[i].position.y = cell + 0.001;
+				}
+                move_speed += g;
                 //console.debug(matTops[i].position);
                 //console.debug(matTops[i].position.y, move_speed);
                 //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);
@@ -496,25 +492,27 @@
         }
     }
 
+
+    var init_move_speed_down = 0.5;
     function moveTopDown(i, ground){
         var move_speed = 70 * frameTime;
+        var g = 9.8 * frameTime;
         var rotate_speed = 1.0 * frameTime;
         //console.debug("frameTime:", frameTime);
         //console.debug("moveTop:", matTops[i], "i: ", i);
         if (matTops[i]){
             //console.debug("moveTop step in");
             if (matTops[i].position.y > ground){
-                matTops[i].position.setY(matTops[i].position.y - move_speed);// += move_speed;
+                matTops[i].position.setY(matTops[i].position.y - move_speed);
                 pointLight[i].position.setY(pointLight[i].position.y - move_speed);
 				if (matTops[i].position.y < ground){
 					matTops[i].position.y = ground - 0.001;
 					pointLight[i].position.y = ground - 0.001;
 				}
-                //console.debug(matTops[i].position);
-                //console.debug(matTops[i].position.y, move_speed);
-                //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);
+                move_speed += g;
             }
             else {
+                move_speed = init_move_speed_down;
                 play = false;
                 document.getElementById( 'playButton' ).value = "Play";
                 pointLight[i].visible = false;
@@ -524,15 +522,14 @@
         }
     }
 
+
     var init_y_move_speed = 4;
     var y_move_speed = init_y_move_speed;
     function moveWhole(i){
         var x_move_speed = 35 * frameTime;
         var rotate_speed = 1.0 * frameTime;
         var g = 9.8 * frameTime;
-        //console.debug(move_speed, init_y_move_speed);
         spotLight.target = matBottoms[i];
-        //pointLight[i-1].visible = false;
         if (matBottoms[i].position.y >= 0) {
             matBottoms[i].position.x += x_move_speed;
             matBottoms[i].position.y += y_move_speed;
@@ -544,21 +541,20 @@
             matTops[i].position.x = matBottoms[i].position.x;
             matTops[i].position.y = matBottoms[i].position.y + asc;
             pointLight[i].position.x = matBottoms[i].position.x;
-            pointLight[i].position.y = matBottoms[i].position.y + asc*1.9;
+            pointLight[i].position.y = matBottoms[i].position.y + asc*1.8;
 
             for (let j = i+1; j < MatroyNum; j++){
-                //pointLight[i].position.x = matBottoms[i].position.x;
-                //pointLight[i].position.y += y_move_speed;
+                let scale = (initScale - j * scaleStep);
+				z = j*scale*5;
                 matBottoms[j].position.x = matBottoms[i].position.x;
-                matBottoms[j].position.y = matBottoms[i].position.y;
+                matBottoms[j].position.y = matBottoms[i].position.y + z;
                 matTops[j].position.x = matBottoms[j].position.x;
-                let asc = (initScale - j * scaleStep) * 56;
+                let asc = 56 * scale;
                 matTops[j].position.y = matBottoms[j].position.y + asc;
-                //pointLight[j].position.x = matBottoms[j].position.x;
-                //pointLight[j].position.y = matBottoms[j].position.y + asc;
             }
         }
         else {
+            pointLight[i-1].visible = false;
 			if (isPL)
 			{
 	            pointLight[i].visible = true;
@@ -572,6 +568,7 @@
         }
     }
 	
+
 	var state = 0;
     function animate() {
 		frameTime = clock.getDelta();
@@ -593,7 +590,6 @@
                 }
             }
         }
-
 
         //更新控制器
         requestAnimationFrame(animate);
