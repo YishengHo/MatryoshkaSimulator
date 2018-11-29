@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Matryoshka Simulator</title>
     <style type="text/css">
         html, body {
             margin: 0;
@@ -109,8 +109,22 @@
     }
 
     var scene;
+	var cubeTextureLoader;
     function initScene() {
         scene = new THREE.Scene();
+		cubeTextureLoader = new THREE.CubeTextureLoader();
+
+		cubeTextureLoader.setPath('./three_js_dev/examples/textures/cube/skyboxsun25deg/');
+
+		var cubeTexture = cubeTextureLoader.load( [
+            'px.jpg', 'nx.jpg',
+            'py.jpg', 'ny.jpg',
+            'pz.jpg', 'nz.jpg'
+        ] );
+		//textureCube.format = THREE.RGBFormat;
+		//textureCube.mapping = THREE.CubeReflectionMapping;
+
+		scene.background = cubeTexture;
     }
 
 
@@ -169,7 +183,8 @@
                 matBottoms[i].material.transparent = false;
             }
             spotLight.visible = true;
-            sunLight.visible = false;
+            //sunLight.visible = false;
+			sunLight.intension = .2;
 			isPL = false;
             let helper = new THREE.CameraHelper(spotLight.shadow.camera);
             //scene.add(helper);
@@ -177,7 +192,8 @@
             let planeMaterial = new THREE.MeshPhongMaterial( { color: 0xDEB887, dithering: true } );
             plane.material = planeMaterial;
             spotLight.visible = false;
-            sunLight.visible = false;
+            //sunLight.visible = false;
+			sunLight.intension = .2;
             pointLight[0].visible = true;
 			isPL = true;
             
@@ -270,11 +286,14 @@
     var scaleStep = .05;
     var mdlInterval = 0;
 
+	// materials
+	var textureCube;
+
     function loadSingleModel(mdlPart, index, scale, callback){
         let mdl;
         let col;
         if(index == 0){
-            col = 0xff0000;
+            col = 0x2F4F4F;
         } else if(index == 1){
             col = 0x00ff00;
         } else if(index == 2){
@@ -290,9 +309,28 @@
             transparent: false,
             specular: 0x222222
         } );
+
+		var r = "./three_js_dev/examples/textures/cube/Bridge2/";
+		var urls = [ r + "posx.jpg", r + "negx.jpg",
+					 r + "posy.jpg", r + "negy.jpg",
+					 r + "posz.jpg", r + "negz.jpg" ];
+		textureCube = new THREE.CubeTextureLoader().load( urls );
+		textureCube.format = THREE.RGBFormat;
+		textureCube.mapping = THREE.CubeReflectionMapping;
+
+		var cubeShader = THREE.ShaderLib[ "cube" ];
+		var cubeMaterial = new THREE.ShaderMaterial( {
+			fragmentShader: cubeShader.fragmentShader,
+			vertexShader: cubeShader.vertexShader,
+			uniforms: cubeShader.uniforms,
+			depthWrite: false,
+			side: THREE.BackSide
+		} );
+		cubeMaterial.uniforms[ "tCube" ].value = textureCube;
+
         let mtlLoader = new THREE.MTLLoader();
-            mtlLoader.load(`./data/${mdlPart}_${index}.mtl`, function(materials){
-                console.debug(`./data/${mdlPart}_${index}.mtl`);
+            mtlLoader.load(`./data/${mdlPart}.mtl`, function(materials){
+                console.debug(`./data/${mdlPart}.mtl`);
                 materials.preload();
                 //加载OBJ格式的模型
                 let loader = new THREE.OBJLoader();
@@ -302,7 +340,7 @@
                     loadedMesh.children.forEach(function (child) {
                         if (child instanceof THREE.Mesh){
                             child.material = material; 
-							//child.material.map = new_texture;
+							
                             mdl = child;
                             mdl.castShadow = true;
                             mdl.geometry.scale(scale, scale, scale);
@@ -347,7 +385,8 @@
             loadSingleModel("bottom", i, scale, pushModel);
         }
     }
-
+	
+	
     function initModel() {
         //辅助工具
         let helper = new THREE.AxesHelper(50);
@@ -359,7 +398,8 @@
             //scene.add(matTops[i]);
             //scene.add(matBottoms[i]);
         }
-    
+
+
         // Adding plane.
         let geo = new THREE.BoxBufferGeometry(200, 0, 200);
         planeMat;
