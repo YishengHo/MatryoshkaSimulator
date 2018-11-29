@@ -310,11 +310,22 @@
             specular: 0x222222
         } );
 
-		var r = "./three_js_dev/examples/textures/cube/Bridge2/";
-		var urls = [ r + "posx.jpg", r + "negx.jpg",
-					 r + "posy.jpg", r + "negy.jpg",
-					 r + "posz.jpg", r + "negz.jpg" ];
-		textureCube = new THREE.CubeTextureLoader().load( urls );
+		// material texture loading
+		var urls = new Array();
+		var imgPath;
+		imgPath = "./three_js_dev/examples/textures/lava/lavatile.jpg"
+		urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
+		imgPath = "./three_js_dev/examples/textures/waterdudv.jpg"
+		urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
+		imgPath = "./three_js_dev/examples/textures/UV_Grid_Sm.jpg"
+		urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
+		imgPath = "./three_js_dev/examples/textures/disturb.jpg"
+		urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
+		imgPath = "./three_js_dev/examples/textures/floors/FloorsCheckerboard_S_Diffuse.jpg"
+		urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
+		
+
+		textureCube = new THREE.CubeTextureLoader().load( urls[index] );
 		textureCube.format = THREE.RGBFormat;
 		textureCube.mapping = THREE.CubeReflectionMapping;
 
@@ -398,7 +409,7 @@
         // Adding plane.
         let geo = new THREE.BoxBufferGeometry(200, 0, 200);
         planeMat;
-        let planeTexture = new THREE.TextureLoader().load('./data/textures/floor2.jpg');
+        let planeTexture = new THREE.TextureLoader().load('./three_js_dev/examples/textures/brick_bump.jpg');
         planeMat = new THREE.MeshLambertMaterial({ 
             map: planeTexture,
             transparent: false,
