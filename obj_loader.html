@@ -403,7 +403,7 @@
         }
     }
 
-
+    var smdl_initScale;
     function loadMatroyModels() {
         //load mtl
         let i;
@@ -416,22 +416,27 @@
 
         // load last surprise model
         var surprise_id = Math.floor((Math.random() * 5));
-        //surprise_id = 4;
+        surprise_id = 4;
         switch (surprise_id) {
         case 0:
-            loadSingleModel("armadillo", MatroyNum-1, 10, pushModel);
+            smdl_initScale = 10;
+            loadSingleModel("armadillo", MatroyNum-1, smdl_initScale, pushModel);
             break;
         case 1:
-            loadSingleModel("dinosaur", MatroyNum-1, scale, pushModel);
+            smdl_initScale = scale;
+            loadSingleModel("dinosaur", MatroyNum-1, smdl_initScale, pushModel);
             break;
         case 2:
-            loadSingleModel("feline", MatroyNum-1, 5, pushModel);
+            smdl_initScale = 5;
+            loadSingleModel("feline", MatroyNum-1, smdl_initScale, pushModel);
             break;
         case 3:
-            loadSingleModel("knight", MatroyNum-1, 12, pushModel);
+            smdl_initScale = 12;
+            loadSingleModel("knight", MatroyNum-1, smdl_initScale, pushModel);
             break;
         case 4:
-            loadSingleModel("qb", MatroyNum-1, 0.4, pushModel);
+            smdl_initScale = 0.4;
+            loadSingleModel("qb", MatroyNum-1, smdl_initScale, pushModel);
             break;
         }
         
@@ -635,6 +640,9 @@
     var init_y_move_speed = 4;
     var y_move_speed = init_y_move_speed;
 
+    //
+    var scale_rate = 1.0;
+
     function moveWhole(i){
         var x_move_speed = 35 * frameTime;
         var rotate_speed = 1.0 * frameTime;
@@ -678,8 +686,11 @@
         }
 
         // last model
-        if (i == MatroyNum -1) {
-            matBottoms[i].rotation.y += 50 * rotate_speed;
+        if (i == MatroyNum-1) {
+            matBottoms[i].rotation.y += 30 * rotate_speed;
+            scale_rate += 0.1;
+            //var cur_scale = smdl_initScale * scale_rate;
+            matBottoms[i].scale.set(scale_rate, scale_rate, scale_rate);
         }
     }
 	
