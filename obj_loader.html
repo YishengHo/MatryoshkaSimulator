@@ -634,6 +634,7 @@
 
     var init_y_move_speed = 4;
     var y_move_speed = init_y_move_speed;
+
     function moveWhole(i){
         var x_move_speed = 35 * frameTime;
         var rotate_speed = 1.0 * frameTime;
@@ -675,11 +676,18 @@
                 matBottoms[(i+1)].position.y = 0;
             }
         }
+
+        // last model
+        if (i == MatroyNum -1) {
+            matBottoms[i].rotation.y += 50 * rotate_speed;
+        }
     }
 	
 
 	var state = 0;
     function animate() {
+        //camera.position.z++;
+
         var pCount = parts.length;
           while(pCount--) {
             parts[pCount].update();
