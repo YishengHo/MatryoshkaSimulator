@@ -378,6 +378,53 @@
         }
     }
 	
+    
+    var movementSpeed = 30;
+    var totalObjects = 200;
+    var objectSize = 10;
+    var sizeRandomness = 4000;
+    var colors = [0xFF0FFF, 0xCCFF00, 0xFF000F, 0x996600, 0xFFFFFF];
+    var dirs = [];
+    var parts = [];
+    function ExplodeAnimation(x,y)
+    {
+        var geometry = new THREE.Geometry();
+        for (i = 0; i < totalObjects; i ++) 
+        { 
+            var vertex = new THREE.Vector3();
+            vertex.x = x;
+            vertex.y = y;
+            vertex.z = 0;
+        
+            geometry.vertices.push( vertex );
+            dirs.push({x:(Math.random() * movementSpeed)-(movementSpeed/2),y:(Math.random() * movementSpeed)-(movementSpeed/2),z:(Math.random() * movementSpeed)-(movementSpeed/2)});
+        }
+        var material = new THREE.ParticleBasicMaterial( { size: objectSize,  color: colors[Math.round(Math.random() * colors.length)] });
+        var particles = new THREE.ParticleSystem( geometry, material );
+        
+        this.object = particles;
+        this.status = true;
+        
+        this.xDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+        this.yDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+        this.zDir = (Math.random() * movementSpeed)-(movementSpeed/2);
+        
+        scene.add( this.object  ); 
+        
+        this.update = function(){
+            if (this.status == true){
+            var pCount = totalObjects;
+            while(pCount--) {
+                var particle =  this.object.geometry.vertices[pCount]
+                particle.y += dirs[pCount].y;
+                particle.x += dirs[pCount].x;
+                particle.z += dirs[pCount].z;
+            }
+            this.object.geometry.verticesNeedUpdate = true;
+            }
+        }
+    }
+
 
 	var planeSkyMat;
     var planeMilkyMat;
@@ -468,6 +515,9 @@
     var CELL = 80;
     var init_move_speed_up = 4;
     function moveTopUp(i, cell){
+        if (Math.floor(state/3) == 3 && state%3 == 0){
+            parts.push(new ExplodeAnimation(matTops[i].position.x, matTops[i].position.y));
+        }
         var move_speed = 70 * frameTime;
         var g = 9.8 * frameTime;
         var rotate_speed = 1.0 * frameTime;
@@ -571,6 +621,11 @@
 
 	var state = 0;
     function animate() {
+        var pCount = parts.length;
+          while(pCount--) {
+            parts[pCount].update();
+          }
+
 		frameTime = clock.getDelta();
 		let move_speed = 10 * frameTime;
 		let rotate_speed = 1.0 * frameTime;
