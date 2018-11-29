@@ -166,7 +166,7 @@
                 matTops[i].material.transparent = false;
                 matBottoms[i].material.transparent = false;
             }
-            sunLight.visible = true;
+            sunLight.visible = true;			
             spotLight.visible = false;
             plane.material = planeMat;
 			isPL = false;
@@ -328,38 +328,33 @@
 		} );
 		cubeMaterial.uniforms[ "tCube" ].value = textureCube;
 
-        let mtlLoader = new THREE.MTLLoader();
-            mtlLoader.load(`./data/${mdlPart}.mtl`, function(materials){
-                console.debug(`./data/${mdlPart}.mtl`);
-                materials.preload();
-                //加载OBJ格式的模型
-                let loader = new THREE.OBJLoader();
-                loader.setMaterials(materials);
-                loader.load(`./data/${mdlPart}.obj`,function (loadedMesh) {
-                    // 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
-                    loadedMesh.children.forEach(function (child) {
-                        if (child instanceof THREE.Mesh){
-                            child.material = material; 
-							
-                            mdl = child;
-                            mdl.castShadow = true;
-                            mdl.geometry.scale(scale, scale, scale);
-                            let z;
-                            if (mdlPart == "top"){
-                                z = 56 * scale;
-                            } else{
-                                z = 0+index*0.5;
-                            }
-                            //mdl.position.set(mdlInterval*index, z, 0);
-							mdl.position.set(-60, z, 0);
-                            //scene.add(mdl);
-                            console.debug("mdl:", mdl);
-                            callback(mdlPart, mdl);
-                        }
-                    });
-                    
-                });
-            });
+		var sphereMaterial = new THREE.MeshLambertMaterial( { envMap: textureCube } );
+
+        let obj_loader = new THREE.OBJLoader();		
+		obj_loader.load(`./data/${mdlPart}.obj`,function (loadedMesh) {
+			// 加载完obj文件是一个场景组，遍历它的子元素，赋值纹理并且更新面和点的法向量
+			loadedMesh.children.forEach(function (child) {
+				if (child instanceof THREE.Mesh){
+					child.material = sphereMaterial; 
+					
+					mdl = child;
+					mdl.castShadow = true;
+					mdl.geometry.scale(scale, scale, scale);
+					let z;
+					if (mdlPart == "top"){
+						z = 56 * scale;
+					} else{
+						z = 0+index*0.5;
+					}
+					//mdl.position.set(mdlInterval*index, z, 0);
+					mdl.position.set(-60, z, 0);
+					//scene.add(mdl);
+					console.debug("mdl:", mdl);
+					callback(mdlPart, mdl);
+				}
+			});
+			
+		});
     }
 
     
@@ -500,6 +495,10 @@
             if (matTops[i].position.y > ground){
                 matTops[i].position.setY(matTops[i].position.y - move_speed);// += move_speed;
                 pointLight[i].position.setY(pointLight[i].position.y - move_speed);
+				if (matTops[i].position.y < ground){
+					matTops[i].position.y = ground - 0.001;
+					pointLight[i].position.y = ground - 0.001;
+				}
                 //console.debug(matTops[i].position);
                 //console.debug(matTops[i].position.y, move_speed);
                 //console.debug(`matTops${i}.position`, matTops[i].position, move_speed);

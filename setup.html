@@ -71,6 +71,8 @@
 				var urls = [ r + "posx.jpg", r + "negx.jpg",
 							 r + "posy.jpg", r + "negy.jpg",
 							 r + "posz.jpg", r + "negz.jpg" ];
+
+				var urls2 = ["./data/texture_1_bottom.png", "./data/texture_1_bottom.png", "./data/texture_1_bottom.png", "./data/texture_1_bottom.png","./data/texture_1_bottom.png","./data/texture_1_bottom.png"];
 				textureCube = new THREE.CubeTextureLoader().load( urls );
 				textureCube.format = THREE.RGBFormat;
 				textureCube.mapping = THREE.CubeReflectionMapping;
@@ -121,7 +123,7 @@
 						//object.geometry.scale(scale, scale, scale);
 						object.children.forEach(function (child) {
 							if (child instanceof THREE.Mesh) {
-								child.material = cubeMaterial; 
+								child.material = sphereMaterial; 
 								var scale = 1.5;
 								child.geometry.scale(scale, scale, scale);
 							}
