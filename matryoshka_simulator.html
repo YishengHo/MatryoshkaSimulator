@@ -312,7 +312,8 @@
 		urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
 		imgPath = "./data/textures/disturb.jpg"
 		urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
-        imgPath = "./data/textures/terrain/grasslight-big.jpg"
+        //imgPath = "./data/textures/grasslight-big.jpg"
+        imgPath = "./data/textures/gold.jpg"
         urls.push([imgPath, imgPath, imgPath, imgPath, imgPath, imgPath]);
 		
         textureCube = new THREE.CubeTextureLoader().load( urls[index] );
@@ -419,7 +420,7 @@
 
         // load last surprise model
         var surprise_id = Math.floor((Math.random() * 5));
-        surprise_id = 4;
+        surprise_id = 3;
         switch (surprise_id) {
         case 0:
             smdl_initScale = 10;
